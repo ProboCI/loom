@@ -10,7 +10,8 @@
     "should": "^7.0.4"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha --no-timeouts --require should --recursive",
+    "test": "./node_modules/.bin/mocha -w -t 15000 --require should --recursive",
+    "_test": "./node_modules/.bin/mocha -w --no-timeouts --require should --recursive",
     "start": ". $PWD/env.sh && node index.js",
     "startdev": ". $PWD/env.sh && nodemon index.js | ./node_modules/.bin/bunyan #-o short"
   },
@@ -21,6 +22,7 @@
     "multistream": "^2.0.2",
     "passport": "^0.2.2",
     "passport-http-bearer": "^1.0.1",
-    "restify": "^4.0.0"
+    "restify": "^4.0.0",
+    "through2": "^2.0.0"
   }
 }
