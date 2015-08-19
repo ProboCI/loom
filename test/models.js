@@ -1,8 +1,69 @@
 var through = require('through2')
 var Stream = require('../lib/models').Stream
+var ArrayStream = require('../lib/models').ArrayStream
 
 describe.only("models", function(){
-  describe("Stream", function(){
+  describe("arraystream", function(){
+    it("gives stored data", function (done){
+      var consumer = new ArrayStream()
+
+      var data = []
+      consumer.write("data 1")
+      consumer.write("data 2")
+
+      consumer.on('readable', function() {
+        var chunk
+        while (null !== (chunk = consumer.read())) {
+          // console.log("<<== got data from consumer: [" + chunk.toString() + "]")
+          data.push(chunk)
+        }
+      });
+
+      setTimeout(function(){
+        consumer.write("data delayed 1")
+
+        setTimeout(function(){
+          consumer.write("data delayed 2")
+          consumer.end()
+        }, 500)
+      }, 500)
+
+      // note: all data must be consumed for 'end' to fire
+      consumer.on("end", function(){
+        // console.log(consumer._array_buffer)
+        Buffer.concat([new Buffer("data 1"), new Buffer("data 2"),
+                       new Buffer("data delayed 1"), new Buffer("data delayed 2")]).toString()
+          .should.eql(Buffer.concat(data).toString())
+
+        // make sure we can reset the stream too
+        var consumer2 = consumer.createReadableStream()
+
+        true.should.eql(consumer.getBuffer() === consumer2.getBuffer())
+
+        var data2 = []
+        consumer2.on('readable', function() {
+          var chunk
+          while (null !== (chunk = consumer2.read())) {
+            // console.log("<<== got data from consumer2: [" + chunk.toString() + "]")
+            data2.push(chunk)
+          }
+        });
+
+        setTimeout(function(){
+          consumer2.write("moar data")
+          consumer2.end()
+        }, 100)
+
+        consumer2.on("end", function(){
+          Buffer.concat([Buffer.concat(data), new Buffer("moar data")]).toString()
+                        .should.eql(Buffer.concat(data2).toString())
+          done()
+        })
+      })
+    })
+  })
+
+  describe.only("Stream", function(){
     var stream = new Stream()
 
     function makeProducer(pushes, interval, finished){
@@ -31,7 +92,7 @@ describe.only("models", function(){
       var producer = makeProducer(2, 100, function finished(){
         [new Buffer("data 1"), new Buffer("data 2")]
           //.should.eql(stream._storage._readableState.buffer)
-          .should.eql(stream._storage.buffer)
+          .should.eql(stream._storage.getBuffer())
 
         done()
       })
@@ -43,9 +104,14 @@ describe.only("models", function(){
 
       var data = []
 
-      consumer.on("data", function(chunk){
-        data.push(chunk)
-      })
+      consumer.on('readable', function() {
+        var chunk
+        while (null !== (chunk = consumer.read())) {
+          // console.log(chunk.toString())
+          data.push(chunk)
+        }
+      });
+
       consumer.on("end", function(){
         Buffer.concat([new Buffer("data 1"), new Buffer("data 2")])
           .should.eql(Buffer.concat(data))
@@ -53,7 +119,7 @@ describe.only("models", function(){
       })
     })
 
-    it.only("gives stored and live data", function (done){
+    it("gives stored and live data", function (done){
       var liveStream = new Stream()
 
       // push a few things onto storage
@@ -61,21 +127,25 @@ describe.only("models", function(){
       liveStream._storage.write("stored 2")
 
       // add in a live producer
-      var producer = makeProducer(5, 1000)
       // only start producer after a delay
-      // setTimeout(function(){
-        liveStream.setProducerStream(producer)
-      // }, 1000)
+      setTimeout(function(){
+        liveStream.setProducerStream(makeProducer(5, 50))
+      }, 100)
 
       var consumer = liveStream.createConsumerStream()
-
       var data = []
 
-      consumer.on("data", function(chunk){
-        console.log(chunk.toString())
-        data.push(chunk)
-      })
+      consumer.on('readable', function() {
+        var chunk
+        while (null !== (chunk = consumer.read())) {
+          // console.log("live chunk read:", chunk.toString())
+          data.push(chunk)
+        }
+      });
+
       consumer.on("end", function(){
+        // console.log(consumer.getBuffer())
+
         Buffer.concat([
           new Buffer("stored 1"),
           new Buffer("stored 2"),
