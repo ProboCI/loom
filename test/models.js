@@ -1,11 +1,11 @@
 var through = require('through2')
 var Stream = require('../lib/models').Stream
-var ArrayStream = require('../lib/models').ArrayStream
+var ArrayStreamStorage = require('../lib/models').ArrayStreamStorage
 
 describe.only("models", function(){
   describe("arraystream", function(){
     it("gives stored data", function (done){
-      var consumer = new ArrayStream()
+      var consumer = new ArrayStreamStorage()
 
       var data = []
       consumer.write("data 1")
