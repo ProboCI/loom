@@ -63,7 +63,7 @@ describe.only("models", function(){
     })
   })
 
-  describe.only("Stream", function(){
+  describe("Stream", function(){
     var stream = new Stream()
 
     function makeProducer(pushes, interval, finished){
