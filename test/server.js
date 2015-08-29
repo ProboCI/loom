@@ -7,7 +7,7 @@ var url = require('url')
 var server = require('../lib/api/server')
 
 var numChunks = 5
-var consumerWait = 2000
+var consumerWait = 1000
 
 function start(cb){
   server.listen(0, function() {
@@ -68,16 +68,31 @@ describe("server", function(){
       function start_consumer(id){
         console.log("starting consumer")
 
+        var data = []
+
         var consumer_handler = function(res){
           console.log('CONSUMER STATUS: ' + res.statusCode);
           console.log('CONSUMER HEADERS: ' + JSON.stringify(res.headers));
           res.setEncoding('utf8');
           res.on('data', function (chunk) {
             console.log('CONSUMER BODY: ' + chunk);
+            data.push(chunk)
           });
           res.on("end", function(){
             console.log("CONSUMER has read the full stream")
-            setTimeout(done, 1000)
+
+            data.should.eql([
+              'chunks written 4',
+              'chunks written 3',
+              'chunks written 2',
+              'chunks written 1'
+            ])
+
+            done()
+          })
+          res.on("error", function(err){
+            console.log("CONSUMER error", err)
+            done(err)
           })
         }
 

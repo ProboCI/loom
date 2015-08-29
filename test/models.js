@@ -2,69 +2,73 @@ var through = require('through2')
 var Stream = require('../lib/models').Stream
 var ArrayStreamStorage = require('../lib/models').ArrayStreamStorage
 
-describe.only("models", function(){
+describe("models", function(){
   describe("arraystream", function(){
     it("gives stored data", function (done){
-      var consumer = new ArrayStreamStorage()
+      var storage = new ArrayStreamStorage()
 
       var data = []
-      consumer.write("data 1")
-      consumer.write("data 2")
+      storage.write(new Buffer("data 1"))
+      storage.write(new Buffer("data 2"))
 
-      consumer.on('readable', function() {
-        var chunk
-        while (null !== (chunk = consumer.read())) {
-          // console.log("<<== got data from consumer: [" + chunk.toString() + "]")
-          data.push(chunk)
-        }
+      storage.on('readable', function() {
+        var chunk = storage.read()
+        console.log("<<== got data from storage: [" + chunk.toString() + "]")
+        data.push(chunk)
       });
 
       setTimeout(function(){
-        consumer.write("data delayed 1")
+        storage.write(new Buffer("data delayed 1"))
 
         setTimeout(function(){
-          consumer.write("data delayed 2")
-          consumer.end()
+          storage.write(new Buffer("data delayed 2"))
+
+          setTimeout(function(){
+            storage.end()
+            storage_write_finished()
+          }, 100)
         }, 500)
       }, 500)
 
-      // note: all data must be consumed for 'end' to fire
-      consumer.on("end", function(){
+      function storage_write_finished(){
+        console.log(storage._array_buffer.slice(0, 4))
+
         // console.log(consumer._array_buffer)
-        Buffer.concat([new Buffer("data 1"), new Buffer("data 2"),
-                       new Buffer("data delayed 1"), new Buffer("data delayed 2")]).toString()
-          .should.eql(Buffer.concat(data).toString())
+        [new Buffer("data 1"), new Buffer("data 2"),
+         new Buffer("data delayed 1"), new Buffer("data delayed 2")]
+          .should.eql(storage._array_buffer.slice(0, 4))
 
         // make sure we can reset the stream too
-        var consumer2 = consumer.createReadableStream()
+        var storage2 = new ArrayStreamStorage(storage)
 
-        true.should.eql(consumer.getBuffer() === consumer2.getBuffer())
+        true.should.eql(storage.getBuffer() === storage2.getBuffer())
 
         var data2 = []
-        consumer2.on('readable', function() {
-          var chunk
-          while (null !== (chunk = consumer2.read())) {
-            // console.log("<<== got data from consumer2: [" + chunk.toString() + "]")
-            data2.push(chunk)
-          }
+        storage2.on('readable', function() {
+          var chunk = storage.read()
+          // console.log("<<== got data from storage2: [" + chunk.toString() + "]")
+          data.push(chunk)
         });
 
         setTimeout(function(){
-          consumer2.write("moar data")
-          consumer2.end()
+          storage2.write("moar data")
+          storage2.end()
+
+          Buffer.concat([Buffer.concat(data), new Buffer("moar data")]).toString()
+            .should.eql(Buffer.concat(data2).toString())
+          done()
         }, 100)
 
-        consumer2.on("end", function(){
-          Buffer.concat([Buffer.concat(data), new Buffer("moar data")]).toString()
-                        .should.eql(Buffer.concat(data2).toString())
-          done()
-        })
-      })
+        // storage2.on("end", function(){
+
+        // })
+      }
     })
   })
 
   describe("Stream", function(){
-    var stream = new Stream()
+    var storage = new ArrayStreamStorage()
+    var stream = new Stream(storage)
 
     function makeProducer(pushes, interval, finished){
       pushes = pushes || 2
@@ -90,17 +94,16 @@ describe.only("models", function(){
 
     it("accepts data", function (done){
       var producer = makeProducer(2, 100, function finished(){
-        [new Buffer("data 1"), new Buffer("data 2")]
-          //.should.eql(stream._storage._readableState.buffer)
-          .should.eql(stream._storage.getBuffer())
+        [new Buffer("data 1"), new Buffer("data 2")].join()
+          .should.eql(stream._storage.getBuffer().join())
 
         done()
       })
-      stream.setProducerStream(producer)
+      producer.pipe(stream)
     })
 
     it("gives stored data", function (done){
-      var consumer = stream.createConsumerStream()
+      var consumer = new Stream(new ArrayStreamStorage(stream._storage))
 
       var data = []
 
@@ -120,7 +123,7 @@ describe.only("models", function(){
     })
 
     it("gives stored and live data", function (done){
-      var liveStream = new Stream()
+      var liveStream = new Stream(new ArrayStreamStorage())
 
       // push a few things onto storage
       liveStream._storage.write("stored 1")
@@ -129,10 +132,10 @@ describe.only("models", function(){
       // add in a live producer
       // only start producer after a delay
       setTimeout(function(){
-        liveStream.setProducerStream(makeProducer(5, 50))
+        makeProducer(5, 50).pipe(liveStream)
       }, 100)
 
-      var consumer = liveStream.createConsumerStream()
+      var consumer = new Stream(new ArrayStreamStorage(liveStream._storage))
       var data = []
 
       consumer.on('readable', function() {
