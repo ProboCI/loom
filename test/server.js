@@ -4,7 +4,9 @@ var url = require('url')
 
 // var should = require('should')
 
+var config = require('../lib/config')
 var server = require('../lib/api/server')
+var rethink = require('../lib/rethink')
 
 var numChunks = 4
 var consumerWait = 2000
@@ -14,7 +16,9 @@ function start(cb){
     server.url = `http://:::${server.address().port}`
     server.log.info('%s listening at %s', server.name, server.url)
 
-    cb && cb()
+    rethink.connect(config.db).ready.then(function(){
+      cb && cb()
+    })
   });
 }
 
