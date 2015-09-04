@@ -29,6 +29,28 @@ X-Stream-Id: generated-stream-id
 
 The response headers will be sent immediately once the stream is configured on the backend, and the producer can continue pumping data into the connection, closing the stream when all data is written. There is no body in the response.
 
+
+### Example
+Here's a curl example for uploading the contents of a file called `file.txt` into a stream:
+
+```
+curl -i -X POST  -H x-stream-metadata:"{\"meta\": true}" http://localhost:3060/stream/ --data-binary @file.txt
+```
+
+### CLI tool
+
+Curl and other command line tools support non-buffered output, but wait for input to end before uploading content. In order to stream arbitrary input data to the server in real time, a CLI tool called `stream` is included. You can use it like so:
+
+```
+for i in {1..5}; do echo $i; sleep 1; done | ./bin/stream http://localhost:3060 streamid
+```
+
+Usage:
+```
+stream server_domain streamid [--force]
+```
+
+
 ### Specifying a Stream ID
 
 It's possible for a producer to specify a stream id to use instead of the server generating one. The `id` is specified in the URL, similarly to a `GET` request:
@@ -60,7 +82,6 @@ X-Stream-Metadata: { ... arbitrary JSON metadata here ... }
 
 ... incoming data ...
 ```
-
 
 
 
@@ -98,4 +119,18 @@ In case the stream with the specified ID doesn't exist, a 404 response will be s
 {
   error: "The stream with ID XXXXX does not exist"
 }
+```
+
+Curl example:
+
+```
+curl --no-buffer http://localhost:3060/stream/:id
+```
+
+### Only get current content
+
+It's possible to only request the current content of the steam for active streams. This may be useful if the client is an AJAX call and cannot stream data or wait arbitrarily long for the stream to end. To do this, use the `notail` URL parameter in the GET request:
+
+```
+curl http://localhost:3060/stream/:id?notail
 ```
