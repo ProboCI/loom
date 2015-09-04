@@ -5,7 +5,7 @@ server.log.info({config: config}, "Configuration loaded");
 
 // connect to the DB
 var rethink = require('./lib/rethink')
-rethink.connect(config.db).ready.then(function(){
+rethink.connect(config.db).ready().then(function(){
   server.log.info("RethinkDB connection initialized")
 
   server.listen(config.server.port, config.server.host, function() {

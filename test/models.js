@@ -1,169 +1,160 @@
-return
-
 var through = require('through2')
-var Stream = require('../lib/models').Stream
+var bl = require('bl')
 var ArrayStreamStorage = require('../lib/models').ArrayStreamStorage
+var RethinkStorage = require('../lib/models').RethinkStorage
 
-describe.skip("models", function(){
-  describe("arraystream", function(){
-    it("gives stored data", function (done){
-      var storage = new ArrayStreamStorage()
+function test_storage(Storage){
+  function read(streamid, storage){
+    return (storage || new Storage()).createReadStream(streamid)
+  }
 
-      var data = []
-      storage.write(new Buffer("data 1"))
-      storage.write(new Buffer("data 2"))
+  function write(streamid, storage){
+    return (storage || new Storage()).createWriteStream(streamid)
+  }
 
-      storage.on('readable', function() {
-        var chunk = storage.read()
-        console.log("<<== got data from storage: [" + chunk.toString() + "]")
-        data.push(chunk)
-      });
-
-      setTimeout(function(){
-        storage.write(new Buffer("data delayed 1"))
-
-        setTimeout(function(){
-          storage.write(new Buffer("data delayed 2"))
-
-          setTimeout(function(){
-            storage.end()
-            storage_write_finished()
-          }, 100)
-        }, 500)
-      }, 500)
-
-      function storage_write_finished(){
-        console.log(storage._array_buffer.slice(0, 4))
-
-        // console.log(consumer._array_buffer)
-        [new Buffer("data 1"), new Buffer("data 2"),
-         new Buffer("data delayed 1"), new Buffer("data delayed 2")]
-          .should.eql(storage._array_buffer.slice(0, 4))
-
-        // make sure we can reset the stream too
-        var storage2 = new ArrayStreamStorage(storage)
-
-        true.should.eql(storage.getBuffer() === storage2.getBuffer())
-
-        var data2 = []
-        storage2.on('readable', function() {
-          var chunk = storage.read()
-          // console.log("<<== got data from storage2: [" + chunk.toString() + "]")
-          data.push(chunk)
-        });
-
-        setTimeout(function(){
-          storage2.write("moar data")
-          storage2.end()
-
-          Buffer.concat([Buffer.concat(data), new Buffer("moar data")]).toString()
-            .should.eql(Buffer.concat(data2).toString())
-          done()
-        }, 100)
-
-        // storage2.on("end", function(){
-
-        // })
+  describe("Storage: " + Storage.name, function (){
+    before(function* reset(){
+      if(Storage === RethinkStorage){
+        // configure and reset DB
+        var config = {
+          db: process.env.DB_NAME || "test"
+        }
+        var rethink = require('../lib/rethink')
+        try {
+          yield rethink.r.dbDrop(config.db)
+        } catch (e){
+          //console.log("warning:", e.message)
+        }
+        rethink.connect(config)
+        yield rethink.ready()
       }
     })
-  })
 
-  describe("Stream", function(){
-    var storage = new ArrayStreamStorage()
-    var stream = new Stream(storage)
-
-    function makeProducer(pushes, interval, finished){
-      pushes = pushes || 2
-      interval = interval || 100
-
-      var producer = through()
-
-      var pushed = 0
-      var _i = setInterval(function(){
-        if(pushed >= pushes){
-          clearInterval(_i)
-          producer.end()
-        } else {
-          producer.write("data " + ++pushed)
-        }
-      }, interval)
-
-      if(finished){
-        producer.on('finish', finished)
+    describe("storage basics", function (){
+      var streams = {
+        'stream 1': {some: 'data'},
+        'stream 2': {more: 'data'}
       }
-      return producer
+
+      it("creates streams", function* (){
+        var storage = new Storage()
+        for(var streamid in streams){
+          var meta = yield storage.saveStream(streamid, streams[streamid])
+          // switch(streamid){
+          // case 'stream 1':
+          //   meta.should.eql({some: "data"})
+          //   break;
+          // case 'stream 2':
+          //   meta.should.eql({more: "data"})
+          //   break;
+          // }
+        }
+      })
+
+      it("loads streams", function* (){
+        var storage = new Storage()
+        var meta = yield storage.loadStream(Object.keys(streams)[0])
+        meta.should.eql({some: "data"})
+      })
+
+      it("stream 1 writes then reads", function(done){
+        var storage = new Storage()
+        var list = bl()
+        list.append("some data")
+        list.append("more data")
+
+        var streamid = 'stream 1'
+        var writer = write(streamid, storage)
+        list.duplicate().pipe(writer)
+
+        writer.on("finish", function(){
+          var reader = read(streamid, storage)
+          reader.pipe(bl(function(err, data){
+            if(err) return done(err)
+            data.should.eql(list.slice(), 'reader on same storage as writer works')
+          }))
+
+          reader.on('end', function(){
+            read(streamid).pipe(bl(function(err, data){
+              if(err) return done(err)
+              data.should.eql(list.slice(), 'reader on different storage than writer works')
+
+              done()
+            }))
+          })
+        })
+      })
+
+      it("stream 2 writes and reads async", function(done){
+        var expected, num = 10, interval = 100
+        var producer = makeProducer(num, interval, function finished_producing(data){
+          expected = data
+        })
+
+        producer.pipe(write('stream 2'))
+
+        var immediate_finished = false
+        var delayed_finished = false
+
+        // reader that starts reading immediately (full stream mode)
+        read('stream 2').pipe(bl(function(err, data){
+          // console.log("expected:", expected.toString())
+          // console.log("found   :", data.toString())
+
+          data.toString().should.eql(expected.toString())
+          immediate_finished = true
+
+          if(delayed_finished && immediate_finished)
+            done()
+        }))
+
+        // reader that starts listenting half way (partial stream mode)
+        // gets existing data, then listens for changes
+        setTimeout(function(){
+          read('stream 2').pipe(bl(function(err, data){
+            // console.log("expected:", expected.toString())
+            // console.log("found   :", data.toString())
+
+            data.toString().should.eql(expected.toString())
+
+            delayed_finished = true
+
+            if(delayed_finished && immediate_finished)
+              done()
+          }))
+        }, num*interval/2)
+      })
+    })
+  })
+}
+
+test_storage(ArrayStreamStorage)
+test_storage(RethinkStorage)
+
+function makeProducer(numpushes, interval, finished){
+  numpushes = numpushes || 2
+  interval = interval || 100
+
+  var producer = through()
+
+  var data = []
+
+  var pushed = 0
+  var _i = setInterval(function(){
+    if(pushed >= numpushes){
+      clearInterval(_i)
+      producer.end()
+    } else {
+      var d = new Buffer("data " + ++pushed)
+      data.push(d)
+      producer.write(d)
     }
+  }, interval)
 
-    it("accepts data", function (done){
-      var producer = makeProducer(2, 100, function finished(){
-        [new Buffer("data 1"), new Buffer("data 2")].join()
-          .should.eql(stream._storage.getBuffer().join())
-
-        done()
-      })
-      producer.pipe(stream)
+  if(finished){
+    producer.on('finish', function(){
+      finished && finished(Buffer.concat(data))
     })
-
-    it("gives stored data", function (done){
-      var consumer = new Stream(new ArrayStreamStorage(stream._storage))
-
-      var data = []
-
-      consumer.on('readable', function() {
-        var chunk
-        while (null !== (chunk = consumer.read())) {
-          // console.log(chunk.toString())
-          data.push(chunk)
-        }
-      });
-
-      consumer.on("end", function(){
-        Buffer.concat([new Buffer("data 1"), new Buffer("data 2")])
-          .should.eql(Buffer.concat(data))
-        done()
-      })
-    })
-
-    it("gives stored and live data", function (done){
-      var liveStream = new Stream(new ArrayStreamStorage())
-
-      // push a few things onto storage
-      liveStream._storage.write("stored 1")
-      liveStream._storage.write("stored 2")
-
-      // add in a live producer
-      // only start producer after a delay
-      setTimeout(function(){
-        makeProducer(5, 50).pipe(liveStream)
-      }, 100)
-
-      var consumer = new Stream(new ArrayStreamStorage(liveStream._storage))
-      var data = []
-
-      consumer.on('readable', function() {
-        var chunk
-        while (null !== (chunk = consumer.read())) {
-          // console.log("live chunk read:", chunk.toString())
-          data.push(chunk)
-        }
-      });
-
-      consumer.on("end", function(){
-        // console.log(consumer.getBuffer())
-
-        Buffer.concat([
-          new Buffer("stored 1"),
-          new Buffer("stored 2"),
-          new Buffer("data 1"),
-          new Buffer("data 2"),
-          new Buffer("data 3"),
-          new Buffer("data 4"),
-          new Buffer("data 5"),
-        ]).toString()
-          .should.eql(Buffer.concat(data).toString())
-
-        done()
-      })
-    })
-  })
-})
+  }
+  return producer
+}

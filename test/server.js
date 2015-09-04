@@ -16,13 +16,18 @@ function start(cb){
     server.url = `http://:::${server.address().port}`
     server.log.info('%s listening at %s', server.name, server.url)
 
-    rethink.connect(config.db).ready.then(function(){
+    console.log(config)
+    rethink.connect(config.db).ready().then(function(){
       cb && cb()
     })
   });
 }
 
 describe("server", function(){
+  before("clear database", function* (){
+    yield rethink.r.dbDrop(config.db.db)
+  })
+
   before("server starts", function (done){
     start(done)
   })

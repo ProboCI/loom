@@ -6,6 +6,8 @@
   "author": "",
   "license": "Proprietary",
   "devDependencies": {
+    "bl": "^1.0.0",
+    "co-mocha": "^1.1.2",
     "mocha": "^2.2.5",
     "should": "^7.0.4"
   },
