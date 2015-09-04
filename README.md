@@ -134,3 +134,18 @@ It's possible to only request the current content of the steam for active stream
 ```
 curl http://localhost:3060/stream/:id?notail
 ```
+
+
+## All seeing eye
+
+The streamer also comes with a helpful `/spy` endpoint that multiplexes all active and new streams.
+
+```
+curl --no-buffer localhost:3060/spy
+```
+
+If you're calling this from a terminal, you can enable color-coding that renders each stream in a separate color for easy visual identification:
+
+```
+curl --no-buffer localhost:3060/spy?color
+```
