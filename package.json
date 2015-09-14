@@ -1,7 +1,7 @@
 {
-  "name": "weave",
-  "version": "1.0.1",
-  "description": "Component ",
+  "name": "probo-loom",
+  "version": "1.0.2",
+  "description": "A stream storage service that allows you to store a stream with some metadata, subscribe to streams, and load the contents of those streams later.",
   "main": "index.js",
   "author": "",
   "license": "Proprietary",
