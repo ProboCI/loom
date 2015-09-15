@@ -15,7 +15,8 @@
     "test": "./node_modules/.bin/mocha -w -t 8000 --require should --recursive",
     "_test": "./node_modules/.bin/mocha -w --no-timeouts --require should --recursive",
     "start": ". $PWD/env.sh && node index.js",
-    "startdev": ". $PWD/env.sh && nodemon index.js | ./node_modules/.bin/bunyan #-o short"
+    "startdev": ". $PWD/env.sh && nodemon index.js | ./node_modules/.bin/bunyan #-o short",
+    "spy": "curl --no-buffer localhost:3060/spy?color"
   },
   "dependencies": {
     "JSONStream": "^1.0.4",
