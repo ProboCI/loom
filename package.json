@@ -12,7 +12,8 @@
     "should": "^7.0.4"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha -w -t 8000 --require should --recursive",
+    "test": "./node_modules/.bin/mocha -t 8000 --require should --recursive",
+    "watch": "./node_modules/.bin/mocha -w -t 8000 --require should --recursive",
     "_test": "./node_modules/.bin/mocha -w --no-timeouts --require should --recursive",
     "start": ". $PWD/env.sh && node index.js",
     "startdev": ". $PWD/env.sh && nodemon index.js | ./node_modules/.bin/bunyan #-o short",
