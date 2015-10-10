@@ -1,10 +1,10 @@
-# About
+# Loom
 
-This server allows for streaming in arbitrary data streams from `producers` (assumed to be stdout/stderr from applications), and attaching arbitrary metadata to them. The streams are persisted live and can be read by `consumers` either in real-time or after input is complete.
+This server allows for streaming in arbitrary data streams from `producers` (assumed to be stdout/stderr from applications), and attaching arbitrary metadata to them. The streams are persisted live and can be read by `consumers` either in real-time or after input is complete. This project was created to compliment the [ProboCI](http://probo.ci) stack but is no way Probo specific nor directly integrated with Probo.
 
 Binary as well as text content is supported automatically.
 
-Note: The codebase uses generators, so io.js required (or node 0.11.x with --harmony-generators flag).
+Note: The codebase uses generators, so it requires node.js 4.x+ or io.js (or node 0.11.x+ with the --harmony-generators flag).
 
 # API
 
@@ -13,18 +13,18 @@ Note: The codebase uses generators, so io.js required (or node 0.11.x with --har
 Create a new stream with metadata by initiating a `POST` request to the server. Any metadata must be encoded in JSON in the `X-Stream-Metadata` header
 
 ### Request
+
 ```
 POST /stream
 X-Stream-Metadata: { ... arbitrary JSON metadata here ... }
-
 ... incoming data ...
 ```
 
 ### Response
+
 ```
 201 HTTP Created
 X-Stream-Id: generated-stream-id
-
 ```
 
 The response headers will be sent immediately once the stream is configured on the backend, and the producer can continue pumping data into the connection, closing the stream when all data is written. There is no body in the response.
