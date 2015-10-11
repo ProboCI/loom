@@ -1,4 +1,4 @@
-# Loom
+# Loom [![Build Status](https://travis-ci.org/ProboCI/loom.svg?branch=master)](https://travis-ci.org/ProboCI/loom)
 
 This server allows for streaming in arbitrary data streams from `producers` (assumed to be stdout/stderr from applications), and attaching arbitrary metadata to them. The streams are persisted live and can be read by `consumers` either in real-time or after input is complete. This project was created to compliment the [ProboCI](http://probo.ci) stack but is no way Probo specific nor directly integrated with Probo.
 
