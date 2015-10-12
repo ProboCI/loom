@@ -26,7 +26,6 @@ function test_storage(Storage){
           //console.log("warning:", e.message)
         }
         rethink.connect(config)
-        yield rethink.ready()
       }
     })
 

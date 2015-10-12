@@ -17,15 +17,14 @@ function start(cb){
     server.log.info('%s listening at %s', server.name, server.url)
 
     console.log(config)
-    rethink.connect(config.db).ready().then(function(){
-      cb && cb()
-    })
+    cb && cb()
   });
 }
 
 describe("server", function(){
   before("clear database", function* (){
-    yield rethink.r.dbDrop(config.db.db)
+    yield rethink.models.Logs.delete()
+    yield rethink.models.Meta.delete()
   })
 
   before("server starts", function (done){
