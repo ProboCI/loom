@@ -20,12 +20,8 @@ function test_storage(Storage){
           db: process.env.DB_NAME || "test"
         }
         var rethink = require('../lib/rethink')
-        try {
-          yield rethink.r.dbDrop(config.db)
-        } catch (e){
-          //console.log("warning:", e.message)
-        }
         rethink.connect(config)
+        yield [rethink.models.Logs.delete(), rethink.models.Meta.delete()]
       }
     })
 
