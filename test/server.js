@@ -23,8 +23,7 @@ function start(cb){
 
 describe("server", function(){
   before("clear database", function* (){
-    yield rethink.models.Logs.delete()
-    yield rethink.models.Meta.delete()
+    yield [rethink.models.Logs.delete(), rethink.models.Meta.delete()]
   })
 
   before("server starts", function (done){
