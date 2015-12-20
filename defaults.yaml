@@ -15,6 +15,6 @@ dbLogsTable: "logs"
 dbMetaTable: "meta"
 
 # API tokens
-tokens:
-  - tik
-  - tok
+# tokens:
+#   - tik
+#   - tok

@@ -4,7 +4,6 @@ var url = require('url')
 
 // var should = require('should')
 
-var config = require('../lib/config')
 var server = require('../lib/api/server')
 var rethink = require('../lib/rethink')
 
@@ -15,8 +14,6 @@ function start(cb){
   server.listen(0, function() {
     server.url = `http://:::${server.address().port}`
     server.log.info('%s listening at %s', server.name, server.url)
-
-    console.log(config)
     cb && cb()
   });
 }
@@ -67,7 +64,10 @@ describe("server", function(){
       var consumer = http.request({
         hostname: url.parse(server.url).hostname,
         port: url.parse(server.url).port,
-        path: '/stream/' + id
+        path: '/stream/' + id,
+        headers: {
+          authorization: 'bearer tik'
+        }
       }, consumer_handler)
       consumer.end()
     }
@@ -99,6 +99,7 @@ curl -vi --no-buffer http://:::${server.address().port}/stream/${streamId}
         method: 'post',
         path: '/stream',
         headers: {
+          authorization: 'bearer tik',
           connection: 'keep-alive',
           'x-stream-metadata': JSON.stringify({test_stream: true})
         }
