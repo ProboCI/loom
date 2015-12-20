@@ -1,4 +1,9 @@
-#! /usr/bin/env bash
+#! /usr/bin/env node
+'use strict';
+var loom = require('..');
+var loader = require('../lib/config.js');
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-eval "source ${DIR}/../env.sh ; node ${DIR}/../index.js $@"
+loader.load(function(error, config) {
+  if (error) throw error;
+  loom.run(config);
+});
