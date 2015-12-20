@@ -8,15 +8,15 @@
   "devDependencies": {
     "bl": "^1.0.0",
     "co-mocha": "^1.1.2",
-    "mocha": "^2.2.5",
+    "mocha": "^2.3.4",
     "should": "^7.0.4"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha -t 8000 --require should --recursive",
     "watch": "./node_modules/.bin/mocha -w -t 8000 --require should --recursive",
     "_test": "./node_modules/.bin/mocha -w --no-timeouts --require should --recursive",
-    "start": ". $PWD/env.sh && node index.js",
-    "startdev": ". $PWD/env.sh && nodemon index.js | ./node_modules/.bin/bunyan #-o short",
+    "start": "./bin/loom",
+    "startdev": "nodemon ./bin/loom | ./node_modules/.bin/bunyan #-o short",
     "spy": "curl --no-buffer localhost:3060/spy?color"
   },
   "dependencies": {
@@ -33,6 +33,8 @@
     "stream-combiner": "^0.2.2",
     "stream-throttle": "^0.1.3",
     "thinky": "^2.1.9",
-    "through2": "^2.0.0"
+    "through2": "^2.0.0",
+    "yaml-config-loader": "^2.0.1",
+    "yargs": "^3.31.0"
   }
 }
