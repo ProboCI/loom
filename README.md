@@ -8,6 +8,22 @@ Note: The codebase uses generators, so it requires node.js 4.x+ or io.js (or nod
 
 # API
 
+## Authentication
+
+Token-based authentication can be enabled for the APIs. To enable it, add at least one token in the config file
+
+```yaml
+tokens:
+  - token1
+  - token2
+```
+
+To authenticate API calls use a bearer-token authentication header: `Authentication: Bearer token1`
+
+```
+curl -H "Authentication: Bearer token1" http://localhost:3060/stream/test
+```
+
 ## Producers
 
 Create a new stream with metadata by initiating a `POST` request to the server. Any metadata must be encoded in JSON in the `X-Stream-Metadata` header
