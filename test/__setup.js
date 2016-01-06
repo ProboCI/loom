@@ -4,7 +4,7 @@ require('co-mocha')
 
 // effectivley silence the logging
 var logger = (require ('../lib/logger')).getLogger();
-logger._level = Number.POSITIVE_INFINITY;
+//logger._level = Number.POSITIVE_INFINITY;
 
 var conf = {
   "tokens": ["tik", "tok"],

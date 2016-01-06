@@ -11,8 +11,8 @@ var numChunks = 4
 var consumerWait = 2000
 
 function start(cb){
-  server.listen(0, function() {
-    server.url = `http://:::${server.address().port}`
+  server.listen(0, '127.0.0.1', function() {
+    server.url = `http://localhost:${server.address().port}`
     server.log.info('%s listening at %s', server.name, server.url)
     cb && cb()
   });
@@ -62,7 +62,7 @@ describe("server", function(){
       }
 
       var consumer = http.request({
-        hostname: url.parse(server.url).hostname,
+        hostname: 'localhost',
         port: url.parse(server.url).port,
         path: '/stream/' + id,
         headers: {
@@ -94,7 +94,7 @@ curl -vi --no-buffer http://:::${server.address().port}/stream/${streamId}
       }
 
       var producer = http.request({
-        hostname: url.parse(server.url).hostname,
+        hostname: 'localhost',
         port: url.parse(server.url).port,
         method: 'post',
         path: '/stream',
