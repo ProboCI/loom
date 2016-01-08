@@ -1,12 +1,30 @@
 var request = require('supertest');
 
-var server = require('../lib/api/server');
+var Server = require('../lib/api/server');
+var server = null;
 
 describe("auth", function(){
   this.timeout(1000)
 
   before("start server", function (done){
-    server.listen(done);
+    var testConf = {
+      tokens: ['tik', 'tok'],
+      server: {
+        host: 'localhost',
+        port: 3060,
+      },
+      db: {
+        host: 'localhost',
+        port: 28015,
+        db: 'test',
+        logsTable: 'logs',
+        metaTable: 'meta',
+      },
+    };
+    var loom = new Server(testConf);
+    loom.listen(done);
+    // Get a reference to the restify server.
+    server = loom.server;
   })
 
   describe("all endpoints require auth", function(){

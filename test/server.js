@@ -4,14 +4,32 @@ var url = require('url')
 
 // var should = require('should')
 
-var server = require('../lib/api/server')
+var Server = require('../lib/api/server')
 var rethink = require('../lib/rethink')
 
 var numChunks = 4
 var consumerWait = 2000
+var server = null;
 
 function start(cb){
-  server.listen(0, '127.0.0.1', function() {
+  var testConf = {
+    tokens: ['tik', 'tok'],
+    server: {
+      host: 'localhost',
+      port: 3060,
+    },
+    db: {
+      host: 'localhost',
+      port: 28015,
+      db: 'test',
+      logsTable: 'logs',
+      metaTable: 'meta',
+    },
+  };
+  loom = new Server(testConf);
+  // Get a reference to the restify server.
+  server = loom.server;
+  loom.listen(0, '127.0.0.1', function() {
     server.url = `http://localhost:${server.address().port}`
     server.log.info('%s listening at %s', server.name, server.url)
     cb && cb()
