@@ -4,19 +4,34 @@ var url = require('url')
 
 // var should = require('should')
 
-var config = require('../lib/config')
-var server = require('../lib/api/server')
+var Server = require('../lib/api/server')
 var rethink = require('../lib/rethink')
 
 var numChunks = 4
 var consumerWait = 2000
+var server = null;
 
 function start(cb){
-  server.listen(0, function() {
-    server.url = `http://:::${server.address().port}`
+  var testConf = {
+    tokens: ['tik', 'tok'],
+    server: {
+      host: 'localhost',
+      port: 3060,
+    },
+    db: {
+      host: 'localhost',
+      port: 28015,
+      db: 'test',
+      logsTable: 'logs',
+      metaTable: 'meta',
+    },
+  };
+  loom = new Server(testConf);
+  // Get a reference to the restify server.
+  server = loom.server;
+  loom.listen(0, '127.0.0.1', function() {
+    server.url = `http://localhost:${server.address().port}`
     server.log.info('%s listening at %s', server.name, server.url)
-
-    console.log(config)
     cb && cb()
   });
 }
@@ -65,9 +80,12 @@ describe("server", function(){
       }
 
       var consumer = http.request({
-        hostname: url.parse(server.url).hostname,
+        hostname: 'localhost',
         port: url.parse(server.url).port,
-        path: '/stream/' + id
+        path: '/stream/' + id,
+        headers: {
+          authorization: 'bearer tik'
+        }
       }, consumer_handler)
       consumer.end()
     }
@@ -94,11 +112,12 @@ curl -vi --no-buffer http://:::${server.address().port}/stream/${streamId}
       }
 
       var producer = http.request({
-        hostname: url.parse(server.url).hostname,
+        hostname: 'localhost',
         port: url.parse(server.url).port,
         method: 'post',
         path: '/stream',
         headers: {
+          authorization: 'bearer tik',
           connection: 'keep-alive',
           'x-stream-metadata': JSON.stringify({test_stream: true})
         }
