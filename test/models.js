@@ -4,21 +4,24 @@
 
 var through = require('through2');
 var bl = require('bl');
+var temp = require('temp').track();
+
 var ArrayStreamStorage = require('../lib/models').ArrayStreamStorage;
 var RethinkStorage = require('../lib/models').RethinkStorage;
+var FileSystemStorage = require('../lib/models').FileSystemStorage;
 
-function testStorage(Storage) {
+function testStorage(Storage, storageConfig) {
   function read(streamid, storage) {
-    return (storage || new Storage()).createReadStream(streamid);
+    return (storage || new Storage(storageConfig)).createReadStream(streamid);
   }
 
   function write(streamid, storage) {
-    return (storage || new Storage()).createWriteStream(streamid);
+    return (storage || new Storage(storageConfig)).createWriteStream(streamid);
   }
 
   describe('Storage: ' + Storage.name, function() {
     before(function* reset() {
-      if (Storage === RethinkStorage) {
+      if (Storage === RethinkStorage || Storage === FileSystemStorage) {
         // configure and reset DB
         var config = {
           db: process.env.DB_NAME || 'test',
@@ -36,20 +39,20 @@ function testStorage(Storage) {
       };
 
       it('creates streams', function* () {
-        var storage = new Storage();
+        var storage = new Storage(storageConfig);
         for (var streamid in streams) {
           yield storage.saveStream(streamid, streams[streamid]);
         }
       });
 
       it('loads streams', function* () {
-        var storage = new Storage();
+        var storage = new Storage(storageConfig);
         var meta = yield storage.loadStream(Object.keys(streams)[0]);
         meta.should.eql({some: 'data'});
       });
 
       it('stream 1 writes then reads', function(done) {
-        var storage = new Storage();
+        var storage = new Storage(storageConfig);
         var list = bl();
         list.append('some data');
         list.append('more data');
@@ -125,6 +128,11 @@ function testStorage(Storage) {
 
 testStorage(ArrayStreamStorage);
 testStorage(RethinkStorage);
+testStorage(FileSystemStorage, {
+  dataDir: temp.mkdirSync(),
+  // keep tail timeout low so that we don't time out the test
+  tailTimeout: 1000,
+});
 
 function makeProducer(numpushes, interval, finished) {
   numpushes = numpushes || 2;

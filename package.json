@@ -12,7 +12,8 @@
     "eslint-config-probo": "^1.0.2",
     "mocha": "^2.3.4",
     "should": "^7.0.4",
-    "supertest": "^1.1.0"
+    "supertest": "^1.1.0",
+    "temp": "^0.8.3"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha -t 8000 --require should --recursive",
@@ -31,6 +32,7 @@
     "passport": "^0.2.2",
     "passport-http-bearer": "^1.0.1",
     "restify": "^4.0.0",
+    "tailing-stream": "^0.2.0",
     "thinky": "^2.2.4",
     "through2": "^2.0.0",
     "yaml-config-loader": "^2.0.1",
