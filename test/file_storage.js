@@ -60,18 +60,34 @@ describe('FileSystemStorage', function() {
     writeStream.write('line 2\n');
     writeStream.end('this is the end\n');
 
+    var filePath = `${config.dataDir}/stream-xyz.log`;
     writeStream.on('finish', () => {
-      fs.readFileSync(`${config.dataDir}/stream-xyz.log`).toString()
+      fs.readFileSync(filePath).toString()
         .should.eql(`line 1
 line 2
 this is the end
 `);
 
-      done();
+      // make sure we properly detect that the stream ended
+      instance._isStreamFinished(filePath, (err, finished)=>{
+        finished.should.eql(false);
+
+        // now make the tailTimeout value really small so that the file looks modified
+        // after waiting for a bit
+        instance.config.tailTimeout = 10;
+
+        setTimeout(()=>{
+          instance._isStreamFinished(filePath, (err, finished, data)=>{
+            finished.should.eql(true);
+
+            done();
+          });
+        }, instance.config.tailTimeout + 50);
+      });
     });
   });
 
-  it('reads from a file (notail)', function(done) {
+  it('reads from a file (notail - reads to EOF)', function(done) {
     var instance = new FileSystemStorage(config);
 
     var fileContents = `write test line 1
@@ -93,7 +109,7 @@ write test end
     });
   });
 
-  it('reads from a file (default)', function(done) {
+  it('reads from a file (default, tails current stream waiting for more data)', function(done) {
     var instance = new FileSystemStorage(config);
 
     var fileContents = `write test line 1
@@ -119,6 +135,41 @@ write test end
 
       done();
     });
+  });
+
+  it('reads from a file (default, old stream not waiting for new data)', function(done) {
+    var instance = new FileSystemStorage(config);
+    // reset tailTimeout to a small value to make file appear old
+    instance.config.tailTimeout = 50;
+
+    var streamId = 'tail-old';
+
+    var fileContents = `write test line 1
+write test line 2
+write test end
+`;
+
+    fs.writeFileSync(`${config.dataDir}/stream-${streamId}.log`, fileContents);
+
+    // wait a bit for the file mtime to age
+    setTimeout(() => {
+      var reader = instance.createReadStream(streamId);
+
+      var start = +new Date();
+
+      reader.pipe(bl(function(err, data) {
+        if (err) return done(err);
+        data.toString().should.eql(fileContents);
+      }));
+
+      reader.on('end', () => {
+        var end = +new Date();
+        // make sure that read returned immediately for old file, not waiting for tailTimeout
+        (end - start).should.approximately(0, 10);
+
+        done();
+      });
+    }, instance.config.tailTimeout + 10);
   });
 
   it('deletes files', function(done) {
