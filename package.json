@@ -24,6 +24,7 @@
     "spy": "curl --no-buffer localhost:3060/spy?color"
   },
   "dependencies": {
+    "bun": "0.0.11",
     "bunyan": "^1.4.0",
     "co": "^4.6.0",
     "colors": "^1.1.2",

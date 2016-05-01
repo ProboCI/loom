@@ -3,7 +3,9 @@
 /* eslint guard-for-in: 0 */
 
 var fs = require('fs');
+var zlib = require('zlib');
 
+var _ = require('lodash');
 var bl = require('bl');
 var temp = require('temp').track();
 var FileSystemStorage = require('../lib/models').FileSystemStorage;
@@ -12,6 +14,7 @@ var config = {
   dataDir: temp.mkdirSync(),
   // keep tail timeout low so that we don't time out the test
   tailTimeout: 1000,
+  compress: false,
 };
 
 describe('FileSystemStorage', function() {
@@ -87,7 +90,7 @@ this is the end
     });
   });
 
-  it('reads from a file (notail - reads to EOF)', function(done) {
+  it('reads from a file (notail, reads to EOF)', function(done) {
     var instance = new FileSystemStorage(config);
 
     var fileContents = `write test line 1
@@ -131,7 +134,7 @@ write test end
 
     reader.on('end', () => {
       var end = +new Date();
-      (end - start).should.approximately(1000 + 200, 10);
+      (end - start).should.approximately(1000 + 200, 20);
 
       done();
     });
@@ -165,11 +168,46 @@ write test end
       reader.on('end', () => {
         var end = +new Date();
         // make sure that read returned immediately for old file, not waiting for tailTimeout
-        (end - start).should.approximately(0, 10);
+        (end - start).should.approximately(0, 20);
 
         done();
       });
     }, instance.config.tailTimeout + 10);
+  });
+
+  it('writes to/from a compressed file', function(done) {
+    var instance = new FileSystemStorage(_.assign({}, config, {
+      compress: true,
+    }));
+
+    var writeStream = instance.createWriteStream('compressed');
+    writeStream.write('line 1\n');
+    writeStream.write('line 2\n');
+    writeStream.end('this is the end\n');
+
+    var filePath = `${config.dataDir}/stream-compressed.log`;
+    writeStream.on('finish', () => {
+      // in a set timeout to give fs time to flush to disk
+      setTimeout(()=>{
+        var content = fs.readFileSync(filePath);
+
+        content.toString('base64').should.eql('H4sIAAAAAAAAA8vJzEtVMOTKAVFGXCUZmcUKQFSSkaqQmpfCBQAhH9pCHgAAAA==');
+        zlib.gunzipSync(content).toString().should.eql(`line 1
+line 2
+this is the end
+`);
+
+        instance.createReadStream('compressed').pipe(bl(function(err, data) {
+          if (err) return done(err);
+          data.toString().should.eql(`line 1
+line 2
+this is the end
+`);
+
+          done();
+        }));
+      }, 10);
+    });
   });
 
   it('deletes files', function(done) {
