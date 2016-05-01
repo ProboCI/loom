@@ -10,6 +10,10 @@ var ArrayStreamStorage = require('../lib/models').ArrayStreamStorage;
 var RethinkStorage = require('../lib/models').RethinkStorage;
 var FileSystemStorage = require('../lib/models').FileSystemStorage;
 
+function isDescendant(B, A) {
+  return B.prototype instanceof A || B === A;
+}
+
 function testStorage(Storage, storageConfig) {
   function read(streamid, storage) {
     return (storage || new Storage(storageConfig)).createReadStream(streamid);
@@ -21,7 +25,7 @@ function testStorage(Storage, storageConfig) {
 
   describe('Storage: ' + Storage.name, function() {
     before(function* reset() {
-      if (Storage === RethinkStorage || Storage === FileSystemStorage) {
+      if (isDescendant(Storage, RethinkStorage)) {
         // configure and reset DB
         var config = {
           db: process.env.DB_NAME || 'test',
