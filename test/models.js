@@ -136,6 +136,7 @@ testStorage(FileSystemStorage, {
   dataDir: temp.mkdirSync(),
   // keep tail timeout low so that we don't time out the test
   tailTimeout: 1000,
+  compress: false,
 });
 
 function makeProducer(numpushes, interval, finished) {
