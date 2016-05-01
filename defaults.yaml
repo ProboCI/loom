@@ -9,10 +9,21 @@ dbHost: 'localhost'
 dbPort: 28015
 # RethinkDB DB name, defaults to logs
 dbName: "logs"
-# RethinkDB table for storing actual logs
-dbLogsTable: "logs"
 # RethinkDB table for storing stream metadata
-dbMetaTable: "meta"
+storageMetaTable: "meta"
+
+# RethinkDB table for storing actual logs (Rethink Storage)
+storageLogsTable: "logs"
+
+# Path on file system for storing stream files. Defaults to "data"
+# storageDataDir: "data"
+
+# Timeout for tailing streams. Defaults to 30 seconds.
+# storageTailTimeout: 30s
+
+# File compression, defaults to true
+# storageCompress: true
+
 
 # API tokens
 tokens:
