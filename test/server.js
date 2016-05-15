@@ -12,21 +12,34 @@ var numChunks = 4;
 var consumerWait = 2000;
 var server = null;
 
+var temp = require('temp').track();
+
+var testConf = {
+  tokens: ['tik', 'tok'],
+  server: {
+    host: 'localhost',
+    port: 3060,
+  },
+  db: {
+    host: 'localhost',
+    port: 28015,
+    db: 'test',
+  },
+  storage: {
+    logsTable: 'logs',
+    metaTable: 'meta',
+    dataDir: temp.mkdirSync(),
+    tailTimeout: '1.5s',
+    compress: false,
+
+    // compression buffers small chunks of data, which doesn't update mtime
+    // so to test with compression on, up time tailTimeout:
+    // compress: true,
+    // tailTimeout: '4s',
+  },
+};
+
 function start(cb) {
-  var testConf = {
-    tokens: ['tik', 'tok'],
-    server: {
-      host: 'localhost',
-      port: 3060,
-    },
-    db: {
-      host: 'localhost',
-      port: 28015,
-      db: 'test',
-      logsTable: 'logs',
-      metaTable: 'meta',
-    },
-  };
   var loom = new Server(testConf);
   // Get a reference to the restify server.
   server = loom.server;
@@ -36,8 +49,9 @@ function start(cb) {
   });
 }
 
-describe('server', function() {
+describe('Server:', function() {
   before('clear database', function* () {
+    rethink.connect(testConf.db);
     yield [rethink.models.Logs.delete(), rethink.models.Meta.delete()];
   });
 
@@ -64,12 +78,12 @@ describe('server', function() {
         res.on('end', function() {
           console.log('CONSUMER has read the full stream');
 
-          data.should.eql([
+          data.join('').should.eql([
             'chunks written 4',
             'chunks written 3',
             'chunks written 2',
             'chunks written 1',
-          ]);
+          ].join(''));
 
           setTimeout(cb, 1000);
         });
