@@ -36,13 +36,18 @@ loader.addMapping({
   dbHost: 'db.host',
   dbPort: 'db.port',
   dbName: 'db.db',
-  dbLogsTable: 'db.logsTable',
-  dbMetaTable: 'db.metaTable',
+  storageLogsTable: 'storage.logsTable',
+  storageMetaTable: 'storage.metaTable',
+
+  storageDataDir: 'storage.dataDir',
+  storageTailTimeout: 'storage.tailTimeout',
+  storageCompress: 'storage.compress',
 });
 
 var configKeys = [
   'server',
   'db',
+  'storage',
   'tokens',
 ];
 
@@ -66,25 +71,27 @@ if (argv.config) {
 
 loader.addAndNormalizeObject(argv, loaderAddOptions);
 
-var cached_config = null;
+var cachedConfig = null;
 module.exports = {
-  load: function(cb){
-    if(cached_config){
-      if(typeof cb == 'function'){
-        cb(null, cached_config);
+  load: function(cb) {
+    if (cachedConfig) {
+      if (typeof cb == 'function') {
+        cb(null, cachedConfig);
       }
-      return cached_config;
+      return cachedConfig;
     }
     else {
-      loader.load(function(err, config){
-        cached_config = config;
+      loader.load(function(err, config) {
+        cachedConfig = config;
         cb(err, config);
       });
     }
   },
-}
+};
 
-loader.load(function(error, config) {
-  if (error) throw error;
-  loom.run(config);
-});
+if (!module.parent) {
+  loader.load(function(error, config) {
+    if (error) throw error;
+    loom.run(config);
+  });
+}

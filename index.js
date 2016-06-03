@@ -11,6 +11,6 @@ module.exports.run = function run(config) {
   rethink.connect(config.db);
 
   server.listen(config.server.port, config.server.host, function() {
-    server.log.info('%s listening at %s', server.name, server.url);
+    server.log.info('%s listening at %s', server.server.name, server.server.url);
   });
 };
