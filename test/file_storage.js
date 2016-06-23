@@ -191,7 +191,12 @@ write test end
       setTimeout(()=>{
         var content = fs.readFileSync(filePath);
 
-        content.toString('base64').should.eql('H4sIAAAAAAAAA8vJzEtVMOTKAVFGXCUZmcUKQFSSkaqQmpfCBQAhH9pCHgAAAA==');
+        // correct contents for normal gzip stream:
+        // content.toString('base64').should.eql('H4sIAAAAAAAAA8vJzEtVMOTKAVFGXCUZmcUKQFSSkaqQmpfCBQAhH9pCHgAAAA==');
+
+        // correct contents for a SYNC_FLUSH gzip stream:
+        content.toString('base64').should.eql('H4sIAAAAAAAAA8rJzEtVMOQCAAAA///KAVFGXAAAAAD//yrJyCxWAKKSjFSF1LwULgAAAAD//wMAIR/aQh4AAAA=');
+
         zlib.gunzipSync(content).toString().should.eql(`line 1
 line 2
 this is the end
