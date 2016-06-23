@@ -1,6 +1,6 @@
 {
   "name": "probo-loom",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "A stream storage service that allows you to store a stream with some metadata, subscribe to streams, and load the contents of those streams later.",
   "main": "index.js",
   "author": "",
