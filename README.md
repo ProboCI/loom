@@ -21,7 +21,7 @@ tokens:
 To authenticate API calls use a bearer-token authentication header: `Authentication: Bearer token1`
 
 ```
-curl -H "Authentication: Bearer token1" http://localhost:3060/stream/test
+curl -H "Authorization: Bearer token1" http://localhost:3060/stream/test
 ```
 
 ## Producers
