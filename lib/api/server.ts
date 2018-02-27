@@ -1,15 +1,20 @@
 'use strict';
-var restify = require('restify');
+import * as restify from 'restify';
+import * as logger from '../logger';
+import * as routes from './routes';
 
-var logger = require('../logger');
-var routes = require('./routes');
 
-class Server {
+export class Server {
+
+  public server: any;
+  public log: any;
+  public listen: any;
+  public close: any;
 
   constructor(config) {
     this.server = restify.createServer({
       name: require('../../package.json').name,
-      log: logger.getLogger().child({component: 'server'}),
+      log: logger.getLogger('').child({component: 'server'}),
     });
     this.configure(config);
   }
@@ -18,7 +23,7 @@ class Server {
     var server = this.server;
     // Extend logger using the plugin.
     server.use(restify.requestLogger({
-      serializers: restify.bunyan.serializers,
+      //serializers: restify.bunyan.serializers,
     }));
     server.use(function(req, res, next) {
       req.log.info({req: req}, 'REQUEST');
@@ -50,5 +55,3 @@ class Server {
   }
 
 }
-
-module.exports = Server;

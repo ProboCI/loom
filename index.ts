@@ -1,9 +1,20 @@
 'use strict';
-var rethink = require('./lib/rethink');
-var Server = require('./lib/api/server');
 
-module.exports.run = function run(config) {
+import { rethink } from './lib/rethink';
+import { Server } from './lib/api/server';
 
+type TConfig = {
+  db: string,
+  server: {
+    port: string,
+    host: string,
+    name: string,
+    url: string
+  },
+
+}
+
+export const run = (config: TConfig) => {
   var server = new Server(config);
   server.log.info({config: config}, 'Configuration loaded');
 
@@ -12,5 +23,5 @@ module.exports.run = function run(config) {
 
   server.listen(config.server.port, config.server.host, function() {
     server.log.info('%s listening at %s', server.server.name, server.server.url);
-  });
-};
+  })
+}

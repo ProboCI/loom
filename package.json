@@ -6,26 +6,36 @@
   "author": "",
   "license": "Proprietary",
   "devDependencies": {
-    "bl": "^1.0.0",
+    "@types/mocha": "^2.2.48",
+    "@types/node": "^8.9.4",
     "co-mocha": "^1.1.2",
     "eslint": "^1.10.3",
     "eslint-config-probo": "^1.0.2",
-    "mocha": "^2.3.4",
-    "should": "^7.0.4",
+    "mocha": "^5.0.1",
     "supertest": "^1.1.0",
-    "temp": "^0.8.3"
+    "temp": "^0.8.3",
+    "typescript": "^2.7.2"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha -t 12000 --require should --recursive",
-    "watch": "./node_modules/.bin/mocha -w -t 12000 --require should --recursive",
-    "_test": "./node_modules/.bin/mocha -w --no-timeouts --require should --recursive",
+    "test": "./node_modules/.bin/mocha --inspect-brk=0.0.0.0:9229 -t 12000 --require ts-node/register --recursive test/auth.ts",
+    "watch": "./node_modules/.bin/mocha -w -t 12000 --require ts-node/register --recursive test/*.ts",
+    "_test": "./node_modules/.bin/mocha -w --no-timeouts --require ts-node/register --recursive test/*.ts",
     "start": "./bin/loom",
-    "startdev": "nodemon ./bin/loom | ./node_modules/.bin/bunyan #-o short",
-    "spy": "curl --no-buffer localhost:3060/spy?color"
+    "startdev": "nodemon --inspect=0.0.0.0:9229 --require ts-node/register/type-check ./bin/loom.ts | ./node_modules/.bin/bunyan #-o short",
+    "spy": "curl --no-buffer localhost:3060/spy?color",
+    "tsc": "tsc --watch"
   },
   "dependencies": {
+    "@types/bl": "^0.8.31",
+    "@types/chai": "^4.1.2",
+    "@types/lodash": "^4.14.104",
+    "@types/restify": "^4.3.6",
+    "@types/through2": "^2.0.33",
+    "@types/yargs": "^11.0.0",
+    "bl": "^1.2.1",
     "bun": "0.0.11",
     "bunyan": "^1.4.0",
+    "chai": "^4.1.2",
     "co": "^4.6.0",
     "colors": "^1.1.2",
     "lodash": "^3.10.1",
@@ -37,6 +47,7 @@
     "tailing-stream": "^0.2.0",
     "thinky": "^2.2.4",
     "through2": "^2.0.0",
+    "ts-node": "^5.0.0",
     "yaml-config-loader": "^2.0.1",
     "yargs": "^3.31.0"
   }

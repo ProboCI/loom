@@ -1,12 +1,15 @@
 'use strict';
 
-var _ = require('lodash');
-var log = require('./logger').getLogger('db');
+import * as _ from 'lodash';
+import { getLogger } from './logger';
+import * as Thinky from 'thinky';
+
+const logger = getLogger('db');
 
 /**
  * .thinky, .r, .models, and .config get automatically set on connect()
  */
-var rethink = {
+export const rethink = {
   thinky: null,
   r: null,
   config: null,
@@ -18,25 +21,26 @@ var rethink = {
       metaTable: 'meta',
     });
 
-    var thinky = rethink.thinky = require('thinky')({
+    const thinky = rethink.thinky = Thinky({
       host: config.host,
       port: config.port,
       db: config.db,
     });
 
     // grab instance of the driver
-    var r = rethink.r = thinky.r;
+    const r = rethink.r = thinky.r;
 
     // log whenever the # of connections in the pool changes
     r.getPoolMaster().on('size', function(size) {
-      log.debug({pool_size: size}, `# of connections in pool: ${size}`);
+      logger.debug({pool_size: size}, `# of connections in pool: ${size}`);
     });
 
     rethink.models = createModels(thinky, config);
 
     return rethink;
-  },
-};
+  }
+}
+
 
 function createModels(thinky, config) {
   var Logs = thinky.createModel(config.logsTable, {}, {enforce_extra: 'none'});
@@ -48,6 +52,3 @@ function createModels(thinky, config) {
 
   return {Logs, Meta};
 }
-
-
-module.exports = rethink;

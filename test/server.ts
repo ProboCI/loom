@@ -1,18 +1,16 @@
 'use strict';
 
-var http = require('http');
-var url = require('url');
+import * as http from 'http';
+import * as url from 'url';
+import { Server } from '../lib/api/server';
+import { rethink } from '../lib/rethink';
+import * as track from 'temp';
 
-// var should = require('should')
+const numChunks = 4;
+const consumerWait = 2000;
+let server = null;
 
-var Server = require('../lib/api/server');
-var rethink = require('../lib/rethink');
-
-var numChunks = 4;
-var consumerWait = 2000;
-var server = null;
-
-var temp = require('temp').track();
+const temp = track.track();
 
 var testConf = {
   tokens: ['tik', 'tok'],

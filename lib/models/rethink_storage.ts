@@ -1,30 +1,47 @@
 'use strict';
 
-var _ = require('lodash');
-var through = require('through2');
-
+import * as _ from 'lodash';
+import * as through from 'through2';
 // connect to localhost on default port with a connection pool
-var rethink = require('../rethink');
+import { rethink } from '../rethink';
+import { getLogger } from '../logger';
+import * as bunyan from 'bunyan';
 
-var logger = require('../logger');
 
-class RethinkStorage {
+type TConfig = {
+  metaTable?: string,
+  logsTable?: string,
+  dataDir: string,
+  tailTimeout?: number | string,
+  compress?: boolean
+}
+
+type TOpts = {
+  notail: boolean;
+  log: string;
+}
+
+
+export class RethinkStorage {
+
+  public config: TConfig;
+  private log: bunyan;
 
   /**
    * @param config - Config object
    * @param [config.metaTable="meta"] - Rethinkdb table to use for metadata. Defaults to "meta"
    * @param [config.logsTable="logs"] - Rethinkdb table to use for log data. Defaults to "logs"
    */
-  constructor(config) {
+  constructor(config: TConfig) {  
     this.config = _.defaults({}, config, {
       logsTable: 'logs',
       metaTable: 'meta',
     });
 
-    this.log = logger.getLogger();
+    this.log = getLogger('');
   }
 
-  createWriteStream(streamId) {
+  createWriteStream(streamId: string) {
     var self = this;
 
     // write data buffer to the DB, along with the stream id and a timestamp
@@ -50,18 +67,20 @@ class RethinkStorage {
     return stream;
   }
 
-  createReadStream(streamId, opts) {
+
+  createReadStream(streamId:  string, opts?: TOpts) {
     var self = this;
-    opts = opts || {};
+    const Opts = opts || {};
     var notail = opts.notail;
 
     var stream = through.obj();
 
-    function log() {
-      var args = Array.prototype.slice.call(arguments);
-      args.unshift('CHANGES STREAM:');
-      self.log.trace.apply(self.log, args);
-    }
+    const log = (...str: any[]) => this.log.trace('CHANGE_STREAM', ...str);
+    // function log(...str: any[]) {
+    //   var args = Array.prototype.slice.call(str);
+    //   args.unshift('CHANGES STREAM:');
+    //   self.log.trace.apply(self.log, args);
+    // }
 
     log('in createReadStream()');
 
@@ -74,13 +93,13 @@ class RethinkStorage {
       .changes({includeInitial: true, includeStates: true})
       .toStream();
 
-    var createInitialDataSortingStream = function(opts) {
+    var createInitialDataSortingStream = function(opts: { log: (...str: any[]) => void }) {
       var buffer = [];
       var initializing = true;
 
       var log = opts.log;
 
-      return through.obj(function(obj, enc, cb) {
+      return through.obj(function(obj: string, enc, cb: () => void) {
         var self = this;
         if (obj === 'ready') {
           log('ready state');
@@ -140,7 +159,7 @@ class RethinkStorage {
     // Buffer initial data for the stream, and sort it by timestamp before
     // sending it out. When Rethink query does this natively, this pipe can
     // be removed & includeStates flag can be set to false (default).
-      .pipe(createInitialDataSortingStream({log}))
+      .pipe(createInitialDataSortingStream({ log }))
 
     // handle stream state transitions
       .pipe(through.obj(function(obj, enc, cb) {
@@ -165,7 +184,7 @@ class RethinkStorage {
         cb();
       }))
 
-      .pipe(through.obj(function(obj, enc, cb) {
+      .pipe(through.obj(function(obj, enc, cb: () => void) {
         // perform loom stream logic by introspecting the data and ending the stream
         // when it's null
 
@@ -187,13 +206,10 @@ class RethinkStorage {
 
     return stream;
   }
+  
 
-  saveStream(streamId, meta, opts, cb) {
-    if (typeof opts == 'function') {
-      cb = opts;
-      opts = false;
-    }
-    opts = opts || {};
+  saveStream(streamId: string, meta, opts?: { replace: boolean }, cb?: () => void) {
+    opts = opts || { replace: false };
 
     // no truthiness here, only the real 'true' will do
     var conflict = opts.replace === true ? 'replace' : 'error';
@@ -206,16 +222,21 @@ class RethinkStorage {
     return rethink.r.table(this.config.metaTable).insert(stream, {conflict: conflict}).run(cb);
   }
 
-  loadStream(streamId, cb) {
+
+  loadStream(streamId: string, cb?: (stream: any) => void) {
     // load the metadata of this stream
     return rethink.r.table(this.config.metaTable).get(streamId).run()
       .then(function(stream) {
-        if (cb) { cb(stream && stream.meta); }
+        if (cb) { 
+          cb(stream && stream.meta); 
+        }
+
         return stream && stream.meta;
       }).catch(cb);
   }
 
-  deleteStream(streamId, cb) {
+
+  deleteStream(streamId: string, cb: () => void) {
     // "delete" the data for this stream
     // (not the metadata - that will get overwritten on save)
 
@@ -229,6 +250,3 @@ class RethinkStorage {
       .run(cb);
   }
 }
-
-module.exports = RethinkStorage;
-

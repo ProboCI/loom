@@ -1,18 +1,17 @@
 'use strict';
 
-var co = require('co');
+import co from 'co';
+import { FileSystemStorage } from '../../models/rethink_stream_backend_filesystem';
+import * as logger from '../../logger';
 
 // var ArrayStreamStorage = require('../../models').ArrayStreamStorage;
 // var RethinkStorage = require('../../models').RethinkStorage;
-var FileSystemStorage = require('../../models').FileSystemStorage;
+//var FileSystemStorage = require('../../models').FileSystemStorage;
 
 // var Storage = RethinkStorage;
 // var Storage = ArrayStreamStorage;
-var Storage = FileSystemStorage;
-
-
-var logger = require('../../logger');
-var log = logger.getLogger().child({component: 'server'});
+const Storage = FileSystemStorage;
+const log = logger.getLogger('').child({component: 'server'});
 
 function handleError(res, err, next) {
   res.status(err.status || 500);
@@ -225,4 +224,4 @@ var streams = {
   },
 };
 
-module.exports = {streams};
+export const controllers = { streams };

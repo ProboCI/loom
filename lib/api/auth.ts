@@ -1,7 +1,13 @@
 'use strict';
 
-var passport = require('passport');
-var BearerStrategy = require('passport-http-bearer').Strategy;
+import * as passport from 'passport';
+import * as Strategy from 'passport-http-bearer';
+
+const BearerStrategy = Strategy;
+
+type TConfig = {
+  tokens: string[]
+}
 
 /**
  * Function that returns an auth lib object to use as route auth middleware
@@ -12,27 +18,30 @@ var BearerStrategy = require('passport-http-bearer').Strategy;
  * @return {Object} - auth lib with the '.auth' function to use
  *                    as the auth middleware with routes
  */
-module.exports = function(config) {
-  var authlib = {
-    verify: function(token, done) {
+export const Auth = function(config: TConfig) {
+  let authlib = {
+    verify: function(token: string, done: (temp: any, param: boolean | { token: string }) => void) {
       process.nextTick(function() {
         var user = {
-          token: token,
+          token: token
         };
 
-        var found = config.tokens.indexOf(token) > -1;
+        const found = config.tokens.indexOf(token) > -1;
 
         if (!found) { return done(null, false); }
         return done(null, user);
       });
     },
+    auth: function(req, res, next){}
   };
 
-  passport.use(new BearerStrategy({realm: 'API Key'}, function(token, done) {
+  passport.use('bearer', new BearerStrategy({realm: 'API Key'}, (token, done) => {
     return authlib.verify(token, done);
   }));
 
-  var tokenAuth = passport.authenticate('bearer', {session: false, failWithError: true});
+  var tokenAuth = passport.authenticate('bearer', {session: false, failWithError: true}, (req, res) => {
+
+  });
 
   // auth middleware that only checks for token authentication if its configured
   authlib.auth = function(req, res, next) {

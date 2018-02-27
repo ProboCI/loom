@@ -1,12 +1,14 @@
 'use strict';
 
-var request = require('supertest');
+import 'mocha';
+import 'chai';
+import * as request from 'supertest';
+import { Server } from '../lib/api/server';
 
-var Server = require('../lib/api/server');
-var server = null;
+let server = null;
 
 describe('auth', function() {
-  this.timeout(1000);
+  this.timeout(15000);
 
   before('start server', function(done) {
     var testConf = {
@@ -33,6 +35,10 @@ describe('auth', function() {
     it('GET /spy', function(done) {
       request(server)
         .get('/spy')
+        .expect(function(res) {
+          console.log('Ex');
+          console.dir(res);
+        })
         .expect('Content-Type', /json/)
         .expect(401, done);
     });

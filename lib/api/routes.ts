@@ -1,14 +1,19 @@
 'use strict';
 
-var controllers = require('./controllers');
+import { controllers } from './controllers/index';
+import { Auth } from './auth';
 
-module.exports.configure = function(server, config) {
-  var auth = require('./auth')({
+type TConfig = {
+  tokens: string[]
+}
+
+export const configure = (server: any, config: TConfig) => {
+  const auth = Auth({
     tokens: config.tokens,
   }).auth;
 
   // inject server configuration into the controllers
-  var conf = function(req, res, next) {
+  const conf = function(req, res, next) {
     req.loomConfig = config;
     next();
   };

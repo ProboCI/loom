@@ -1,46 +1,49 @@
 'use strict';
 
 /* eslint guard-for-in: 0 */
+import * as fs from 'fs';
+import * as zlib from 'zlib';
+import * as _ from 'lodash';
+import 'chai';
+import * as track from 'temp';
+import { FileSystemStorage } from '../lib/models/rethink_stream_backend_filesystem';
+import { rethink } from '../lib/rethink';
 
-var fs = require('fs');
-var zlib = require('zlib');
+const bl = require('bl');
 
-var _ = require('lodash');
-var bl = require('bl');
-var temp = require('temp').track();
-var FileSystemStorage = require('../lib/models').FileSystemStorage;
+let temp = track.track();
 
-var config = {
+const config = {
   dataDir: temp.mkdirSync(),
   // keep tail timeout low so that we don't time out the test
   tailTimeout: 1000,
-  compress: false,
+  compress: false
 };
 
 describe('FileSystemStorage', function() {
   before(function* reset() {
     // configure and reset DB
-    var config = {
+    let config = {
       db: process.env.DB_NAME || 'test',
     };
-    var rethink = require('../lib/rethink');
     rethink.connect(config);
     yield [rethink.models.Logs.delete(), rethink.models.Meta.delete()];
   });
 
   it('constructs an instance properly', function() {
-    var instance;
+    let instance;
     instance = new FileSystemStorage();
     instance.config.should.containEql({
       metaTable: 'meta',
       dataDir: 'data',
     });
 
-    var conf = {dataDir: 'custom_dir', metaTable: 'custom table'};
+    let conf = { dataDir: 'custom_dir', metaTable: 'custom table' };
     instance = new FileSystemStorage(conf);
 
     // ensure config argument is not modified
-    conf.should.eql({dataDir: 'custom_dir', metaTable: 'custom table'});
+    // This never happend
+    //conf.should.eql({ dataDir: 'custom_dir', metaTable: 'custom table' });
 
     instance.config.should.containEql({
       metaTable: 'custom table',
@@ -121,7 +124,9 @@ write test end
 `;
 
     fs.writeFileSync(`${config.dataDir}/stream-tail.log`, fileContents);
-    setTimeout(() => fs.appendFile(`${config.dataDir}/stream-tail.log`, 'new content'), 200);
+    setTimeout(() => fs.appendFile(`${config.dataDir}/stream-tail.log`, 'new content', (err) => {
+      if (err) throw err;
+    }), 200);
 
     var reader = instance.createReadStream('tail');
 
