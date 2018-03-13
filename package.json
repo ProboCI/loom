@@ -1,7 +1,8 @@
 {
   "name": "probo-loom",
   "version": "2.0.1",
-  "description": "A stream storage service that allows you to store a stream with some metadata, subscribe to streams, and load the contents of those streams later.",
+  "description":
+    "A stream storage service that allows you to store a stream with some metadata, subscribe to streams, and load the contents of those streams later.",
   "main": "index.js",
   "author": "",
   "license": "Proprietary",
@@ -17,11 +18,15 @@
     "typescript": "^2.7.2"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha --inspect-brk=0.0.0.0:9229 -t 12000 --require ts-node/register --recursive test/auth.ts",
-    "watch": "./node_modules/.bin/mocha -w -t 12000 --require ts-node/register --recursive test/*.ts",
-    "_test": "./node_modules/.bin/mocha -w --no-timeouts --require ts-node/register --recursive test/*.ts",
+    "test":
+      "./node_modules/.bin/mocha --inspect-brk=0.0.0.0:9229 -t 1000 --require ts-node/register --recursive test/*.ts",
+    "watch":
+      "./node_modules/.bin/mocha -w -t 12000 --require ts-node/register --recursive test/*.ts",
+    "_test":
+      "./node_modules/.bin/mocha -w --no-timeouts --require ts-node/register --recursive test/*.ts",
     "start": "./bin/loom",
-    "startdev": "nodemon --inspect=0.0.0.0:9229 --require ts-node/register/type-check ./bin/loom.ts | ./node_modules/.bin/bunyan #-o short",
+    "startdev":
+      "nodemon --inspect=0.0.0.0:9229 --require ts-node/register/type-check ./bin/loom.ts | ./node_modules/.bin/bunyan #-o short",
     "spy": "curl --no-buffer localhost:3060/spy?color",
     "tsc": "tsc --watch"
   },
@@ -29,7 +34,6 @@
     "@types/bl": "^0.8.31",
     "@types/chai": "^4.1.2",
     "@types/lodash": "^4.14.104",
-    "@types/restify": "^4.3.6",
     "@types/through2": "^2.0.33",
     "@types/yargs": "^11.0.0",
     "bl": "^1.2.1",

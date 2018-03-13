@@ -1,30 +1,23 @@
-'use strict';
+"use strict";
 
-import * as fs from 'fs';
-import * as Path from 'path';
-import * as zlib from 'zlib';
-import * as ms from 'ms';
-import * as through2 from 'through2';
-import * as combine from 'bun';
-import * as _ from 'lodash';
-import * as tstream from 'tailing-stream';
-import { RethinkStorage } from './rethink_storage';
+import * as fs from "fs";
+import * as Path from "path";
+import * as zlib from "zlib";
+import * as ms from "ms";
+import * as through2 from "through2";
+import * as combine from "bun";
+import * as _ from "lodash";
+import * as tstream from "tailing-stream";
+import { RethinkStorage } from "./rethink_storage";
+import "../../typings/TConfig";
 
 const createTailingStream = tstream.createReadStream;
 
-type TConfig = {
-  metaTable?: string,
-  logsTable?: string,
-  dataDir: string,
-  tailTimeout?: number | string,
-  compress?: boolean
-}
+type TConfigDb = TConfig["db"];
 
-type Tcb = (err: any, finished?: boolean, age?: {age: number}) => void;
-
+type Tcb = (err: any, finished?: boolean, age?: { age: number }) => void;
 
 export class FileSystemStorage extends RethinkStorage {
-  
   /**
    * @param config - Config object
    * @param [config.metaTable="meta"] - Rethinkdb table to use for metadata. Defaults to "meta"
@@ -32,15 +25,15 @@ export class FileSystemStorage extends RethinkStorage {
    * @param [config.tailTimeout=30000] - Timeout for tailing streams. Defaults to 30 seconds.
    * @param [config.compress=true] - Boolean value for transparrent on-disk compression
    */
-  constructor(config?: TConfig) {
+  constructor(config?: TConfigDb) {
     config = _.defaults({}, config, {
-      dataDir: 'data',
+      dataDir: "data",
       tailTimeout: 30 * 1000,
-      compress: true,
+      compress: true
     });
 
     // convert a string representation (e.g., 30000, 30s) to a number
-    config.tailTimeout = ms(config.tailTimeout + '');
+    config.tailTimeout = ms(config.tailTimeout + "");
 
     super(config);
 
@@ -48,24 +41,21 @@ export class FileSystemStorage extends RethinkStorage {
     // this.log.debug({config}, 'FileSystemStorage config');
   }
 
-
   makeFileName(streamId: string): string {
     return `stream-${streamId}.log`;
   }
-
 
   makeStreamFilePath(streamId: string, makeFileName = null): string {
     makeFileName = makeFileName || this.makeFileName;
     return Path.join(this.config.dataDir, makeFileName(streamId));
   }
 
-
   createWriteStream(streamId: string): any {
     const path = this.makeStreamFilePath(streamId);
     const fileStream = fs.createWriteStream(path);
 
     if (this.config.compress) {
-      const zipStream = zlib.createGzip({flush: zlib.Z_SYNC_FLUSH});
+      const zipStream = zlib.createGzip({ flush: zlib.Z_SYNC_FLUSH });
       const streams = [zipStream, fileStream];
       const stream = combine(streams);
       return stream;
@@ -73,7 +63,6 @@ export class FileSystemStorage extends RethinkStorage {
 
     return combine([fileStream]);
   }
-
 
   createReadStream(streamId: string, opts: { notail?: boolean } = {}): any {
     let notail = opts.notail;
@@ -84,7 +73,7 @@ export class FileSystemStorage extends RethinkStorage {
     // a finished stream implies notail option
     this._isStreamFinished(path, (err, finished, info) => {
       if (err) {
-        return stream.emit('error', err);
+        return stream.emit("error", err);
       }
 
       if (finished) {
@@ -99,7 +88,7 @@ export class FileSystemStorage extends RethinkStorage {
         // otherwise, tail the file
         // keep reading until we a timeout is hit
         dataStream = createTailingStream(path, {
-          timeout: this.config.tailTimeout,
+          timeout: this.config.tailTimeout
         });
       }
 
@@ -113,23 +102,29 @@ export class FileSystemStorage extends RethinkStorage {
     return stream;
   }
 
-
-  deleteStream(streamId: string, cb?: (err: any, newPath: string) => void): Promise<string> {
+  deleteStream(
+    streamId: string,
+    cb?: (err: any, newPath: string) => void
+  ): Promise<string> {
     // "delete" the data for this stream
     // (not the metadata - that will get overwritten on save)
 
     var newSidPrefix = `deleted_${+new Date()}_`;
 
     var oldPath = this.makeStreamFilePath(streamId);
-    var newPath = this.makeStreamFilePath(streamId, (sid) => newSidPrefix + this.makeFileName(sid));
+    var newPath = this.makeStreamFilePath(
+      streamId,
+      sid => newSidPrefix + this.makeFileName(sid)
+    );
 
-    fs.rename(oldPath, newPath, (err) => {
-      if (cb) { cb(err, newPath); }
+    fs.rename(oldPath, newPath, err => {
+      if (cb) {
+        cb(err, newPath);
+      }
     });
 
     return Promise.resolve(newPath);
   }
-
 
   /**
    * Checks to see if the stream has finished writing.
@@ -145,7 +140,7 @@ export class FileSystemStorage extends RethinkStorage {
       const age: number = new Date().valueOf() - stat.mtime.valueOf();
       const finished: boolean = age > this.config.tailTimeout;
 
-      cb(null, finished, {age: age});
+      cb(null, finished, { age: age });
     });
   }
 }

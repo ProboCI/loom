@@ -1,29 +1,33 @@
-'use strict';
+"use strict";
 
-import 'mocha';
-import 'chai';
-import * as request from 'supertest';
-import { Server } from '../lib/api/server';
+import "mocha";
+import "chai";
+import * as request from "supertest";
+import { Server } from "../lib/api/server";
+import * as bunyan from "bunyan";
+import "../typings/TConfig";
+
+process.env.NODE_ENV = "test";
 
 let server = null;
 
-describe('auth', function() {
-  this.timeout(15000);
+describe("auth", function() {
+  this.timeout(5000);
 
-  before('start server', function(done) {
+  before("start server", function(done) {
     var testConf = {
-      tokens: ['tik', 'tok'],
+      tokens: ["tik", "tok"],
       server: {
-        host: 'localhost',
-        port: 3060,
+        host: "localhost",
+        port: 3060
       },
       db: {
-        host: 'localhost',
+        host: "localhost",
         port: 28015,
-        db: 'test',
-        logsTable: 'logs',
-        metaTable: 'meta',
-      },
+        db: "test",
+        logsTable: "logs",
+        metaTable: "meta"
+      }
     };
     var loom = new Server(testConf);
     loom.listen(done);
@@ -31,36 +35,32 @@ describe('auth', function() {
     server = loom.server;
   });
 
-  describe('all endpoints require auth', function() {
-    it('GET /spy', function(done) {
+  describe("all endpoints require auth", function() {
+    it("GET /spy", function(done) {
       request(server)
-        .get('/spy')
-        .expect(function(res) {
-          console.log('Ex');
-          console.dir(res);
-        })
-        .expect('Content-Type', /json/)
+        .get("/spy")
+        .expect("Content-Type", /json/)
         .expect(401, done);
     });
 
-    it('GET /stream/id', function(done) {
+    it("GET /stream/id", function(done) {
       request(server)
-        .get('/stream/id')
-        .expect('Content-Type', /json/)
+        .get("/stream/id")
+        .expect("Content-Type", /json/)
         .expect(401, done);
     });
 
-    it('POST /stream/id', function(done) {
+    it("POST /stream/id", function(done) {
       request(server)
-        .post('/stream/id')
-        .expect('Content-Type', /json/)
+        .post("/stream/id")
+        .expect("Content-Type", /json/)
         .expect(401, done);
     });
 
-    it('POST /stream/', function(done) {
+    it("POST /stream/", function(done) {
       request(server)
-        .post('/stream')
-        .expect('Content-Type', /json/)
+        .post("/stream")
+        .expect("Content-Type", /json/)
         .expect(401, done);
     });
   });
