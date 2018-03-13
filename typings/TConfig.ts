@@ -5,8 +5,8 @@ type TConfig = {
     port: number;
   };
   db: {
-    host: string;
-    port: number;
+    host?: string;
+    port?: number;
     db: string;
     metaTable?: string;
     logsTable?: string;

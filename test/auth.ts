@@ -7,6 +7,7 @@ import { Server } from "../lib/api/server";
 import * as bunyan from "bunyan";
 import "../typings/TConfig";
 
+// Set debug level
 process.env.NODE_ENV = "test";
 
 let server = null;

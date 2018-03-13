@@ -24,7 +24,7 @@ export class RethinkStorage {
    * @param [config.metaTable="meta"] - Rethinkdb table to use for metadata. Defaults to "meta"
    * @param [config.logsTable="logs"] - Rethinkdb table to use for log data. Defaults to "logs"
    */
-  constructor(config: TConfigDb) {
+  constructor(config?: TConfigDb) {
     this.config = _.defaults({}, config, {
       logsTable: "logs",
       metaTable: "meta"

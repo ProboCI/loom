@@ -19,7 +19,7 @@
   },
   "scripts": {
     "test":
-      "./node_modules/.bin/mocha --inspect-brk=0.0.0.0:9229 -t 1000 --require ts-node/register --recursive test/*.ts",
+      "./node_modules/.bin/mocha --inspect=0.0.0.0:9229 -t 1000 --require ts-node/register --recursive test/*.ts",
     "watch":
       "./node_modules/.bin/mocha -w -t 12000 --require ts-node/register --recursive test/*.ts",
     "_test":

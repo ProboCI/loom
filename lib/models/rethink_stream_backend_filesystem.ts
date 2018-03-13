@@ -37,7 +37,7 @@ export class FileSystemStorage extends RethinkStorage {
 
     super(config);
 
-    this.config = config;
+    // this.config = config;
     // this.log.debug({config}, 'FileSystemStorage config');
   }
 
