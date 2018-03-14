@@ -1,37 +1,37 @@
-module.exports = {
+"use strict";
 
+module.exports = {
   test: {
-    client: 'postgresql',
+    client: "postgresql",
     connection: {
-      database: 'probodb_test',
-      user: 'probodb_test',
-      password: 'password',
-      host: 'localhost',
+      database: "probodb_test",
+      user: "probodb_test",
+      password: "password",
+      host: "localhost"
     },
     pool: {
       min: 2,
-      max: 10,
+      max: 10
     },
     migrations: {
-      tableName: 'knex_migrations',
-    },
+      tableName: "knex_migrations"
+    }
   },
 
   production: {
-    client: 'postgresql',
+    client: "postgresql",
     connection: {
-      database: 'log_db',
-      user: 'probodb',
-      password: 'password',
-      host: 'localhost',
+      database: "log_db",
+      user: "probodb",
+      password: "password",
+      host: "localhost"
     },
     pool: {
       min: 2,
-      max: 10,
+      max: 10
     },
     migrations: {
-      tableName: 'knex_migrations',
-    },
-  },
+      tableName: "knex_migrations"
+    }
+  }
 };
-
