@@ -17,11 +17,11 @@
     "typescript": "^2.7.2"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha --inspect=0.0.0.0:9229 -t 1000 --require ts-node/register --recursive test/*.ts",
+    "test": "./node_modules/.bin/mocha --inspect=0.0.0.0:9229 -t 1000 --require ts-node/register --recursive test/*.ts --exit",
     "watch": "./node_modules/.bin/mocha -w -t 12000 --require ts-node/register --recursive test/*.ts",
     "_test": "./node_modules/.bin/mocha -w --no-timeouts --require ts-node/register --recursive test/*.ts",
     "start": "./bin/loom",
-    "startdev": "nodemon --inspect=0.0.0.0:9229 --require ts-node/register/type-check ./bin/loom.ts | ./node_modules/.bin/bunyan #-o short",
+    "startdev": "nodemon --inspect=0.0.0.0:9229 --require ts-node/register/type-check ./bin/loom.ts -c /etc/probo/loom.yaml | ./node_modules/.bin/bunyan #-o short",
     "spy": "curl --no-buffer localhost:3060/spy?color",
     "tsc": "tsc --watch"
   },
@@ -51,6 +51,7 @@
     "thinky": "^2.2.4",
     "through2": "^2.0.0",
     "ts-node": "^5.0.0",
+    "uuid": "^3.2.1",
     "yaml-config-loader": "^2.0.1",
     "yargs": "^3.31.0"
   }

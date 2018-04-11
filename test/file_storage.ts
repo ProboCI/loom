@@ -9,8 +9,8 @@ import { expect } from "chai"; // Using Expect style
 import { should } from "chai"; // Using Should style
 import "mocha";
 import * as track from "temp";
-import { FileSystemStorage } from "../lib/models/rethink_stream_backend_filesystem";
-import { rethink } from "../lib/rethink";
+import { FileSystemStorage } from "../lib/models/postgre_stream_backend_filesystem";
+import { Database } from "../lib/knex";
 
 should();
 
@@ -33,10 +33,13 @@ describe("FileSystemStorage", function() {
   before(function* reset() {
     // configure and reset DB
     let config = {
-      db: process.env.DB_NAME || "test"
+      db: process.env.DB_NAME || "test",
+      tables: {
+        logsTable: "logs",
+        metaTable: "meta"
+      }
     };
-    rethink.connect(config);
-    yield [rethink.models.Logs.delete(), rethink.models.Meta.delete()];
+    yield [Database.knex(config.tables.metaTable).truncate()];
   });
 
   it("constructs an instance properly", function() {

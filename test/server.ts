@@ -9,6 +9,7 @@ import { Server } from "../lib/api/server";
 import { rethink } from "../lib/rethink";
 import * as track from "temp";
 import { exists } from "fs";
+import { Database } from "../lib/knex";
 
 should();
 
@@ -59,7 +60,7 @@ function start(cb) {
 describe("Server:", function() {
   before("clear database", function*() {
     rethink.connect(testConf.db);
-    yield [rethink.models.Logs.delete(), rethink.models.Meta.delete()];
+    yield [rethink.models.Logs.delete(), rethink.models.Meta.delete(), Database.knex(testConf.storage.metaTable).truncate()];
   });
 
   before("server starts", function(done) {
@@ -148,7 +149,7 @@ curl -vi --no-buffer http://:::${server.address().port}/stream/${streamId}
           headers: {
             authorization: "bearer tik",
             connection: "keep-alive",
-            "x-stream-metadata": JSON.stringify({ test_stream: true })
+            "x-stream-metadata": JSON.stringify({"buildId":"31aced17-67da-45fe-b447-f326f39f8a1b","task":{"id": "58aa706b20c00000","name": "AssetDownloader task","plugin": "AssetDownloader"} })
           }
         },
         producerHandler
@@ -173,5 +174,3 @@ curl -vi --no-buffer http://:::${server.address().port}/stream/${streamId}
     });
   });
 });
-
-console.log("TEST END");

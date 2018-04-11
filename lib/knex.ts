@@ -1,11 +1,11 @@
 "use strict";
 
 import * as _ from "lodash";
+import * as client from "knex";
 
 const knexConfig = require("../knexfile");
 
 process.env.NODE_ENV = process.env.NODE_ENV || "production";
-
-var knex = require("knex")(knexConfig[process.env.NODE_ENV]);
-
-module.exports = knex;
+export module Database {
+    export var knex: client = client(knexConfig[process.env.NODE_ENV]);
+}

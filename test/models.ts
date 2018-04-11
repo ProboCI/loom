@@ -7,9 +7,9 @@ import { expect } from "chai"; // Using Expect style
 import { should } from "chai"; // Using Should style
 import * as through from "through2";
 import * as track from "temp";
-import { RethinkStorage } from "../lib/models/rethink_storage";
-import { FileSystemStorage } from "../lib/models/rethink_stream_backend_filesystem";
-import { rethink } from "../lib/rethink";
+import { PostgreStorage } from "../lib/models/postgre_storage";
+import { FileSystemStorage } from "../lib/models/postgre_stream_backend_filesystem";
+import { Database } from "../lib/knex";
 
 should();
 
@@ -18,6 +18,10 @@ process.env.NODE_ENV = "test";
 
 const bl = require("bl");
 const temp = track.track();
+const tables = {
+  logsTable: "logs",
+  metaTable: "meta"
+};
 
 function isDescendant(B, A) {
   return B.prototype instanceof A || B === A;
@@ -34,21 +38,28 @@ function testStorage(Storage, storageConfig) {
 
   describe("Storage: " + Storage.name, function() {
     before(function* reset() {
-      if (isDescendant(Storage, RethinkStorage)) {
+      if (isDescendant(Storage, PostgreStorage)) {
         // configure and reset DB
         const config = {
           db: process.env.DB_NAME || "test"
         };
 
-        rethink.connect(config);
-        yield [rethink.models.Logs.delete(), rethink.models.Meta.delete()];
+        yield [Database.knex(tables.metaTable).truncate()];
       }
     });
 
     describe("storage basics", function() {
       var streams = {
-        "stream 1": { some: "data" },
-        "stream 2": { more: "data" }
+        "build-31aced17-67da-45fe-b447-f326f39f8a1b-task-58aa706b20c00000": {
+          "metadata": {
+            "buildId":"31aced17-67da-45fe-b447-f326f39f8a1b",
+            "task":{"id": "58aa706b20c00000","name": "AssetDownloader task","plugin": "AssetDownloader"}}
+          },
+        "build-31aced17-67da-45fe-b447-f326f39f8a1b-task-58aa706b21400000": {
+          "metadata": {
+            "buildId":"31aced17-67da-45fe-b447-f326f39f8a1b",
+            "task":{"id": "58aa706b21400000","name": "Probo site setup","plugin": "LAMPApp"}}
+          },
       };
 
       it("creates streams", function*() {
@@ -61,7 +72,7 @@ function testStorage(Storage, storageConfig) {
       it("loads streams", function*() {
         var storage = new Storage(storageConfig);
         var meta = yield storage.loadStream(Object.keys(streams)[0]);
-        meta.should.eql({ some: "data" });
+        meta.metadata[0].should.eql(streams[Object.keys(streams)[0]].metadata);
       });
 
       it("stream 1 writes then reads", function(done) {
@@ -156,7 +167,7 @@ function testStorage(Storage, storageConfig) {
 }
 
 //testStorage(ArrayStreamStorage);
-//testStorage(RethinkStorage);
+//testStorage(PostgreStorage);
 testStorage(FileSystemStorage, {
   dataDir: temp.mkdirSync(),
   // keep tail timeout low so that we don't time out the test

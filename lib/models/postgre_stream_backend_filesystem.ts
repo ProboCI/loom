@@ -8,7 +8,7 @@ import * as through2 from "through2";
 import * as combine from "bun";
 import * as _ from "lodash";
 import * as tstream from "tailing-stream";
-import { RethinkStorage } from "./rethink_storage";
+import { PostgreStorage } from "./postgre_storage";
 import "../../typings/TConfig";
 
 const createTailingStream = tstream.createReadStream;
@@ -17,7 +17,7 @@ type TConfigDb = TConfig["db"];
 
 type Tcb = (err: any, finished?: boolean, age?: { age: number }) => void;
 
-export class FileSystemStorage extends RethinkStorage {
+export class FileSystemStorage extends PostgreStorage {
   /**
    * @param config - Config object
    * @param [config.metaTable="meta"] - Rethinkdb table to use for metadata. Defaults to "meta"

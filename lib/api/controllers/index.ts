@@ -1,8 +1,9 @@
 "use strict";
 
 import co from "co";
-import { FileSystemStorage } from "../../models/rethink_stream_backend_filesystem";
+import { FileSystemStorage } from "../../models/postgre_stream_backend_filesystem";
 import { getLogger } from "../../logger";
+import * as uuid from "uuid/v4";
 
 // var ArrayStreamStorage = require('../../models').ArrayStreamStorage;
 // var RethinkStorage = require('../../models').RethinkStorage;
@@ -65,7 +66,7 @@ var streams = {
     }
 
     co(function*() {
-      var id = req.params.id || "loom-" + +new Date();
+      var id = req.params.id || "build-" + metadata.buildId + "-task-"+metadata.task.id;
       req.log = req.log.child({ sid: id }, true);
 
       var storage = new Storage(req.loomConfig.storage);
@@ -157,7 +158,7 @@ var streams = {
         }
 
         var reader = storage.createReadStream(streamId, { notail });
-        res.header("x-stream-metadata", JSON.stringify(stream.metadata));
+        res.header("x-stream-metadata", JSON.stringify(stream.metadata[0]));
 
         reader.on("error", err => {
           req.log.error({ err }, "Failed to create read stream for", streamId);
