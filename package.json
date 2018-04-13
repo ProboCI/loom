@@ -48,7 +48,6 @@
     "pg": "^6.2.2",
     "restify": "^4.0.0",
     "tailing-stream": "^0.2.0",
-    "thinky": "^2.2.4",
     "through2": "^2.0.0",
     "ts-node": "^5.0.0",
     "uuid": "^3.2.1",

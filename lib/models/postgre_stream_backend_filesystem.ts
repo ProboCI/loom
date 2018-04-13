@@ -20,7 +20,7 @@ type Tcb = (err: any, finished?: boolean, age?: { age: number }) => void;
 export class FileSystemStorage extends PostgreStorage {
   /**
    * @param config - Config object
-   * @param [config.metaTable="meta"] - Rethinkdb table to use for metadata. Defaults to "meta"
+   * @param [config.metaTable="meta"] - table to use for metadata. Defaults to "meta"
    * @param [config.dataDir="data"] - Path on file system for storing stream files. Defaults to "data"
    * @param [config.tailTimeout=30000] - Timeout for tailing streams. Defaults to 30 seconds.
    * @param [config.compress=true] - Boolean value for transparrent on-disk compression

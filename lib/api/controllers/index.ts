@@ -5,12 +5,6 @@ import { FileSystemStorage } from "../../models/postgre_stream_backend_filesyste
 import { getLogger } from "../../logger";
 import * as uuid from "uuid/v4";
 
-// var ArrayStreamStorage = require('../../models').ArrayStreamStorage;
-// var RethinkStorage = require('../../models').RethinkStorage;
-//var FileSystemStorage = require('../../models').FileSystemStorage;
-
-// var Storage = RethinkStorage;
-// var Storage = ArrayStreamStorage;
 const Storage = FileSystemStorage;
 const log = getLogger("").child({ component: "server" });
 
@@ -66,7 +60,9 @@ var streams = {
     }
 
     co(function*() {
-      var id = req.params.id || "build-" + metadata.buildId + "-task-"+metadata.task.id;
+      var id =
+        req.params.id ||
+        "build-" + metadata.buildId + "-task-" + metadata.task.id;
       req.log = req.log.child({ sid: id }, true);
 
       var storage = new Storage(req.loomConfig.storage);
