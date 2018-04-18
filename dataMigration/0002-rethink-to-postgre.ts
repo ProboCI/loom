@@ -3,29 +3,31 @@
 // Run as:
 // node dataMigration/0001-rethink-to-file-streams -c loom.yaml | bunyan
 
-var loader = require('../bin/loom');
-var log = require('../lib/logger').getLogger('migration 0001');
-var rethink = require('../lib/rethink');
-var co = require('co');
-var fs = require('fs');
+var loader = require("../bin/loom");
+import * as logger from "../lib/logger";
+let log = logger.getLogger('migration 0002');
+import { rethink } from "../lib/rethink";
+import { Database } from "../lib/knex";
+import * as co from 'co';
+import * as fs from 'fs';
 
-var RethinkStorage = require('../lib/models').RethinkStorage;
-var FileSystemStorage = require('../lib/models').FileSystemStorage;
+import { RethinkStorage } from "../lib/models/rethink_storage";
+import { PostgreStorage } from "../lib/models/postgre_storage";
 
 var listRethinkStreams = function(cb) {
   var Meta = rethink.models.Meta;
   Meta.run(function(err, streams) {
     if (err) { return cb(err); }
 
-    cb(null, streams.map((s)=>s.id));
+    cb(null, streams.map((s)=>s));
   });
 };
 
 // returns a promise that resolves to true or false
-var fileExists = function(path) {
+var metaRowExists = function(id, postgreStorage) {
   return new Promise(function(accept, reject) {
-    fs.access(path, (err) => {
-      accept(!err);
+    postgreStorage.loadStream(id, (err) =>{
+      accept(err);
     });
   });
 };
@@ -47,7 +49,7 @@ loader.load(function(err, config) {
   try {
     rethink.connect(config.db);
     var rethinkStorage = new RethinkStorage(config.storage);
-    var fileStorage = new FileSystemStorage(config.storage);
+    var postgreStorage = new PostgreStorage(config.storage);
 
     listRethinkStreams(function(err, streamIds) {
       if (err) {
@@ -55,19 +57,20 @@ loader.load(function(err, config) {
       }
 
       co(function*() {
-        for (let id of streamIds) {
-          let path = fileStorage.makeStreamFilePath(id);
-          var exists = yield fileExists(path);
+        for (let meta of streamIds) {
+          var exists = yield metaRowExists(meta.id, postgreStorage);
 
           if (exists) {
-            log.info(`exists, skipping:  ${path}`);
+           log.info(`exists, skipping:  ${meta.id}`); 
+           log.info(`${exists}`); 
           }
           else {
-            log.info(`writing stream to: ${path}`);
-            yield writeStream(
-              rethinkStorage.createReadStream(id, {notail: true}),
-              fileStorage.createWriteStream(id)
-            );
+            log.info(`writing stream to: ${meta.id}`);
+
+            let metaData = meta.meta.metaData;
+
+            postgreStorage.saveStream(meta.id,meta.meta);
+            
           }
         }
 
@@ -81,5 +84,6 @@ loader.load(function(err, config) {
     console.error(e.stack);
   }
 });
+
 
 
