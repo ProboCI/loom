@@ -1,7 +1,13 @@
-'use strict';
+"use strict";
 
-var passport = require('passport');
-var BearerStrategy = require('passport-http-bearer').Strategy;
+import * as passport from "passport";
+import * as Strategy from "passport-http-bearer";
+
+const BearerStrategy = Strategy.Strategy;
+
+type TConfigTok = {
+  tokens: string[];
+};
 
 /**
  * Function that returns an auth lib object to use as route auth middleware
@@ -12,32 +18,44 @@ var BearerStrategy = require('passport-http-bearer').Strategy;
  * @return {Object} - auth lib with the '.auth' function to use
  *                    as the auth middleware with routes
  */
-module.exports = function(config) {
-  var authlib = {
-    verify: function(token, done) {
+export const Auth = function(config: TConfigTok) {
+  let authlib = {
+    verify: function(
+      token: string,
+      done: (temp: any, param: boolean | { token: string }) => void
+    ) {
       process.nextTick(function() {
         var user = {
-          token: token,
+          token: token
         };
 
-        var found = config.tokens.indexOf(token) > -1;
+        const found = config.tokens.indexOf(token) > -1;
 
-        if (!found) { return done(null, false); }
+        if (!found) {
+          return done(null, false);
+        }
         return done(null, user);
       });
     },
+    auth: function(req, res, next) {}
   };
 
-  passport.use(new BearerStrategy({realm: 'API Key'}, function(token, done) {
-    return authlib.verify(token, done);
-  }));
+  passport.use(
+    new BearerStrategy({ realm: "API Key" }, (token, done) => {
+      // Verify is not called when there is no token!!
+      return authlib.verify(token, done);
+    })
+  );
 
-  var tokenAuth = passport.authenticate('bearer', {session: false, failWithError: true});
+  var tokenAuth = passport.authenticate("bearer", {
+    session: false,
+    failWithError: true
+  });
 
   // auth middleware that only checks for token authentication if its configured
   authlib.auth = function(req, res, next) {
     if (Array.isArray(config.tokens)) {
-      return tokenAuth(req, res, function(err) {
+      return tokenAuth(req, res, err => {
         // This callback is only called when `failWithError` is
         // set. We need a custom callback here to call `next()` so
         // that Restify can log the end of the request properly (and
@@ -55,8 +73,7 @@ module.exports = function(config) {
 
         return next(err);
       });
-    }
-    else {
+    } else {
       next();
     }
   };

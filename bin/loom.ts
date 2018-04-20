@@ -1,12 +1,13 @@
 #! /usr/bin/env node
 'use strict';
-var loom = require('..');
 
-var path = require('path');
-var util = require('util');
-var Loader = require('yaml-config-loader');
-var yargs = require('yargs');
-var loader = new Loader({stopOnError: true});
+import * as loom from '../index';
+import * as path from 'path';
+import * as util from 'util';
+import * as yargs from 'yargs';
+import * as Loader from 'yaml-config-loader';
+
+const loader = new Loader({stopOnError: true});
 
 loader.on('error', function(error) {
   if (error.name === 'YAMLException') {
@@ -15,7 +16,7 @@ loader.on('error', function(error) {
   throw error;
 });
 
-var argv = yargs
+yargs
   .describe('port', 'The port to listen on.')
   .alias('port', 'p')
   .describe('config', 'A YAML config file or directory of yaml files to load, can be invoked multiple times and later files will override earlier.')
@@ -23,7 +24,7 @@ var argv = yargs
   .describe('help', 'Display this help message.')
   .alias('help', 'h');
 
-argv = yargs.argv;
+const argv = yargs.argv;
 
 if (argv.help) {
   yargs.showHelp();
@@ -44,7 +45,7 @@ loader.addMapping({
   storageCompress: 'storage.compress',
 });
 
-var configKeys = [
+const configKeys = [
   'server',
   'db',
   'storage',
@@ -53,8 +54,8 @@ var configKeys = [
 
 // When you use remapping, later mappings tend to replace the entire
 // structure rather than overwriting the component key.
-var loaderAddOptions = {
-  deepMerge: configKeys,
+const loaderAddOptions = {
+  deepMerge: configKeys
 };
 
 loader.add(path.resolve(path.join(__dirname, '..', 'defaults.yaml')), loaderAddOptions);
@@ -64,6 +65,7 @@ if (argv.config) {
   if (typeof argv.config === 'string') {
     argv.config = [argv.config];
   }
+
   for (let filePath of argv.config) {
     loader.add(path.resolve(filePath), loaderAddOptions);
   }
@@ -71,7 +73,7 @@ if (argv.config) {
 
 loader.addAndNormalizeObject(argv, loaderAddOptions);
 
-var cachedConfig = null;
+let cachedConfig = null;
 module.exports = {
   load: function(cb) {
     if (cachedConfig) {

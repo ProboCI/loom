@@ -1,7 +1,7 @@
 'use strict';
 
 // Run as:
-// node migrations/0001-rethink-to-file-streams -c loom.yaml | bunyan
+// node dataMigration/0001-rethink-to-file-streams -c loom.yaml | bunyan
 
 var loader = require('../bin/loom');
 var log = require('../lib/logger').getLogger('migration 0001');
