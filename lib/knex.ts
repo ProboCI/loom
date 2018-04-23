@@ -3,7 +3,7 @@
 import * as _ from "lodash";
 import * as client from "knex";
 
-const knexConfig = require("../knexfile");
+const knexConfig = require(process.env.PWD + "/knexfile");
 
 process.env.NODE_ENV = process.env.NODE_ENV || "production";
 export module Database {

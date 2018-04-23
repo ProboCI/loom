@@ -58,7 +58,7 @@ const loaderAddOptions = {
   deepMerge: configKeys
 };
 
-loader.add(path.resolve(path.join(__dirname, '..', 'defaults.yaml')), loaderAddOptions);
+loader.add(path.resolve(path.join(process.env.PWD, 'defaults.yaml')), loaderAddOptions);
 loader.addAndNormalizeObject(process.env, loaderAddOptions);
 
 if (argv.config) {

@@ -1,0 +1,36 @@
+'use strict';
+module.exports = {
+    test: {
+        client: 'postgresql',
+        connection: {
+            database: 'probodb_test',
+            user: 'probodb_test',
+            password: 'password',
+            host: 'localhost',
+        },
+        pool: {
+            min: 2,
+            max: 10,
+        },
+        migrations: {
+            tableName: 'knex_migrations',
+        },
+    },
+    production: {
+        client: 'postgresql',
+        connection: {
+            database: 'log_db',
+            user: 'probodb',
+            password: 'password',
+            host: 'localhost',
+        },
+        pool: {
+            min: 2,
+            max: 10,
+        },
+        migrations: {
+            tableName: 'knex_migrations',
+        },
+    },
+};
+//# sourceMappingURL=knexfile.js.map

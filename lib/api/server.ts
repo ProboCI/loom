@@ -12,7 +12,7 @@ export class Server {
 
   constructor(config: TConfig) {
     this.server = restify.createServer({
-      name: require("../../package.json").name,
+      name: require(process.env.PWD + "/package.json").name,
       log: getLogger("").child({ component: "server" })
     });
     this.configure(config);
