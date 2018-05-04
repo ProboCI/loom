@@ -1,0 +1,68 @@
+#! /bin/bash
+
+MY_PATH="`dirname \"$0\"`"              # relative
+MY_PATH="`( cd \"$MY_PATH\" && pwd )`"  # absolutized and normalized
+
+while test $# -gt 0; do
+  case "$1" in
+    -h|--help)
+      echo "Handles merging migrations from plugins and running them."
+      echo " "
+      echo "options:"
+      echo "-h, --help      show help"
+      echo "-c,             specify the full path to config.yaml to use."
+      echo "-k,             specify the full path to the knexfile to use."
+      echo "-e, --env       specify the enviroment from the knexfile to use."
+      exit 0
+      ;;
+    -c)
+      shift
+      if test $# -gt 0; then
+        config=$1
+      else
+	echo "no config specified"
+	exit 1
+      fi
+      shift
+      ;;
+    -k)
+      shift
+      if test $# -gt 0; then
+        knexfile=$1
+      else
+	echo "no knexfile specified"
+	exit 1
+      fi
+      shift
+      ;;
+    -e|--env)
+      shift
+      if test $# -gt 0; then
+        env=$1
+      else
+  echo "no enviroment specified"
+  exit 1
+      fi
+      shift
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+if [[ -z $env ]]; then
+  enviroment="production"
+else
+  echo "Set default enviroment as : $env"
+  enviroment=$env
+fi
+
+if [[ -z $knexfile ]]; then
+  node_modules/.bin/knex-migrate up --env $enviroment
+else
+  cp $knexfile $MY_PATH/../alt-knex.js
+  node_modules/.bin/knex-migrate up --env $enviroment --knexfile $MY_PATH/../alt-knex.js
+  rm $MY_PATH/../alt-knex.js
+fi
+

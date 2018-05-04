@@ -1,0 +1,6 @@
+#! /usr/bin/env bash
+
+. /home/vagrant/.nvm/nvm.sh
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+eval "nvm exec 8.9.0 npm install --production --prefix ${DIR}/../ $@"
