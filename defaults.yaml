@@ -26,6 +26,6 @@ storageLogsTable: "logs"
 
 
 # API tokens
-tokens:
-  - tik
-  - tok
+#tokens:
+#  - tik
+#  - tok
