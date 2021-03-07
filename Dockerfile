@@ -14,4 +14,7 @@ RUN cd /home/probo/app/ && npm install
 WORKDIR /home/probo/app
 
 EXPOSE 3060
+
+VOLUME ["/opt/db"]
+
 CMD ["bin/loom"]

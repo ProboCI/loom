@@ -37,7 +37,7 @@
     "tailing-stream": "^0.2.0",
     "thinky": "^2.2.4",
     "through2": "^2.0.0",
-    "yaml-config-loader": "~2.0.1",
+    "yaml-config-loader": "~2.1.0",
     "yargs": "^3.31.0"
   }
 }
