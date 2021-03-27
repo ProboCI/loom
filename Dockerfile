@@ -17,4 +17,4 @@ EXPOSE 3060
 
 VOLUME ["/opt/db"]
 
-CMD ["bin/loom"]
+CMD ["sh", "/home/probo/app/bin/startup.sh"]
