@@ -58,18 +58,18 @@ var loaderAddOptions = {
 };
 
 loader.add(path.resolve(path.join(__dirname, '..', 'defaults.yaml')), loaderAddOptions);
-loader.addAndNormalizeObject(process.env, loaderAddOptions);
+loader.addAndNormalizeObject(process.env, 'camelCase', loaderAddOptions);
 
-if (argv.config) {
-  if (typeof argv.config === 'string') {
-    argv.config = [argv.config];
+if (argv.c) {
+  if (typeof argv.c === 'string') {
+    argv.c = [argv.c];
   }
-  for (let filePath of argv.config) {
-    loader.add(path.resolve(filePath), loaderAddOptions);
+  for (let i in argv.c) {
+    loader.add(path.resolve(argv.c[i]), loaderAddOptions);
   }
 }
 
-loader.addAndNormalizeObject(argv, loaderAddOptions);
+loader.addAndNormalizeObject(argv, 'camelCase', loaderAddOptions);
 
 var cachedConfig = null;
 module.exports = {
