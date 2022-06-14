@@ -1,12 +1,10 @@
-# Loom
+# Microservice: Loom
 
-This server allows for streaming in arbitrary data streams from `producers` (assumed to be stdout/stderr from applications), and attaching arbitrary metadata to them. The streams are persisted live and can be read by `consumers` either in real-time or after input is complete. This project was created to compliment the [ProboCI](http://probo.ci) stack but is no way Probo specific nor directly integrated with Probo.
+The "loom" server allows for streaming in arbitrary data streams from `producers` (assumed to be stdout/stderr from applications), and attaching arbitrary metadata to them. The streams are persisted live and can be read by `consumers` either in real-time or after input is complete. This project was created to compliment the [ProboCI](http://probo.ci) stack but is no way Probo specific nor directly integrated with Probo.
 
 Binary as well as text content is supported automatically.
 
-Note: The codebase uses generators, so it requires node.js 4.x+ or io.js (or node 0.11.x+ with the --harmony-generators flag).
-
-# API
+Note: The codebase uses generators, so it requires node.js 4.x+ or io.js (or node 0.11.x+ with the --harmony-generators flag). The Docker microservices uses Node 12.
 
 ## Authentication
 
@@ -44,7 +42,6 @@ X-Stream-Id: generated-stream-id
 ```
 
 The response headers will be sent immediately once the stream is configured on the backend, and the producer can continue pumping data into the connection, closing the stream when all data is written. There is no body in the response.
-
 
 ### Example
 Here's a curl example for uploading the contents of a file called `file.txt` into a stream:
@@ -99,8 +96,6 @@ X-Stream-Metadata: { ... arbitrary JSON metadata here ... }
 ... incoming data ...
 ```
 
-
-
 ## Consumers
 
 Consumers that know a stream ID can make request to read it back out. If the full stream is stored on the server, the response will be send and the HTTP request closed. If the producer is still contributing data to the stream, anything already sent by the producer will be sent first, and the consumer stream will remain open and updated with new producer data as it comes in until the producer finishes.
@@ -150,7 +145,6 @@ It's possible to only request the current content of the steam for active stream
 ```
 curl http://localhost:3060/stream/:id?notail
 ```
-
 
 ## All seeing eye
 
