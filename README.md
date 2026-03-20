@@ -4,7 +4,7 @@ The "loom" server allows for streaming in arbitrary data streams from `producers
 
 Binary as well as text content is supported automatically.
 
-Note: The codebase uses generators, so it requires node.js 4.x+ or io.js (or node 0.11.x+ with the --harmony-generators flag). The Docker microservices uses Node 12.
+Note: The codebase uses generators, so it requires node.js 4.x+ or io.js (or node 0.11.x+ with the --harmony-generators flag). The Docker microservice uses Node 22.
 
 ## Authentication
 
@@ -144,6 +144,35 @@ It's possible to only request the current content of the steam for active stream
 
 ```
 curl http://localhost:3060/stream/:id?notail
+```
+
+## Deleting Streams
+
+Streams associated with a build can be deleted by build ID. This is used by the reaper to clean up loom data when a build is reaped.
+
+### Request
+```
+DELETE /stream/build/:buildId
+```
+
+### Response
+
+```
+200 HTTP Ok
+
+{
+  "status": "deleted",
+  "buildId": "the-build-id",
+  "deleted": ["/path/to/renamed/file1", "/path/to/renamed/file2"]
+}
+```
+
+The stream files on disk are renamed with a `deleted_` prefix rather than permanently removed.
+
+Curl example:
+
+```
+curl -X DELETE http://localhost:3060/stream/build/:buildId
 ```
 
 ## All seeing eye
