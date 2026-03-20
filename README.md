@@ -4,7 +4,7 @@ The "loom" server allows for streaming in arbitrary data streams from `producers
 
 Binary as well as text content is supported automatically.
 
-Note: The codebase uses generators, so it requires node.js 4.x+ or io.js (or node 0.11.x+ with the --harmony-generators flag). The Docker microservices uses Node 12.
+Note: The codebase uses generators, so it requires node.js 4.x+ or io.js (or node 0.11.x+ with the --harmony-generators flag). The Docker microservice uses Node 22.
 
 ## Authentication
 
